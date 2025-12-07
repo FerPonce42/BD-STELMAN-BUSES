@@ -1,0 +1,24 @@
+{% extends 'publico/base.html' %}
+
+{% block title %}Rutas - Stelman Buses{% endblock %}
+
+{% block content %}
+<section class="container">
+  <h1>Rutas</h1>
+  <p>Listado estático de rutas (relleno). Más adelante lo conectamos a la BD para mostrar rutas reales.</p>
+
+  <ul class="ruta-list">
+    <li>
+      <strong>Ruta A</strong> — Color: Azul — Duración aprox: 50 min
+    </li>
+    <li>
+      <strong>Ruta B</strong> — Color: Rojo — Duración aprox: 40 min
+    </li>
+    <li>
+      <strong>Ruta C</strong> — Color: Verde — Duración aprox: 60 min
+    </li>
+  </ul>
+
+  <p class="hint">Pasa el cursor sobre una ruta para ver más información (más adelante añadimos JS/CSS).</p>
+</section>
+{% endblock %}

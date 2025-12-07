@@ -1,0 +1,28 @@
+{% extends 'publico/base.html' %}
+
+{% block title %}Contacto - Stelman Buses{% endblock %}
+
+{% block content %}
+<section class="container">
+  <h1>Contacto</h1>
+
+  {% if enviado %}
+    <p>Gracias {{ nombre }} — tu mensaje fue recibido (simulado).</p>
+  {% else %}
+    <p>Si tienes preguntas puedes escribirnos (este formulario es estático, luego lo conectamos al backend).</p>
+
+    <form action="{{ url_for('contacto') }}" method="post" class="contact-form">
+      <label for="nombre">Nombre</label>
+      <input id="nombre" name="nombre" type="text" placeholder="Tu nombre" required>
+
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" placeholder="tu@correo.com" required>
+
+      <label for="mensaje">Mensaje</label>
+      <textarea id="mensaje" name="mensaje" rows="5" placeholder="Escribe tu mensaje..." required></textarea>
+
+      <button type="submit">Enviar</button>
+    </form>
+  {% endif %}
+</section>
+{% endblock %}

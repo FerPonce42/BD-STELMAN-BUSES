@@ -1,0 +1,20 @@
+{% extends 'publico/base.html' %}
+
+{% block title %}Inicio - Stelman Buses{% endblock %}
+
+{% block content %}
+<section class="hero container">
+  <h1>Bienvenido a Stelman Buses</h1>
+  <p>Transporte urbano confiable en tu ciudad. Rutas seguras, personal capacitado y mantenimiento permanente.</p>
+
+  <p>
+    <a class="btn" href="{{ url_for('rutas') }}">Ver Rutas</a>
+    <a class="btn outline" href="{{ url_for('login') }}">Iniciar sesión (supervisores)</a>
+  </p>
+</section>
+
+<section class="about container">
+  <h2>Quiénes somos</h2>
+  <p>Stelman Buses es una empresa de transporte urbano dedicada a brindar un servicio seguro y puntual. (Texto de relleno — cámbialo por el contenido real cuando quieras.)</p>
+</section>
+{% endblock %}
