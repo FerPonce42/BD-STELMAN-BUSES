@@ -32,7 +32,7 @@
             <select name="id_modelo_bus" required>
                 {% for m in modelos %}
                     <option value="{{ m.id }}" {% if m.id == bus_a_editar.id_modelo_bus %}selected{% endif %}>
-                        {{ m.nombre }}
+                        {{ m.marca_nombre }} - {{ m.modelo_nombre }}
                     </option>
                 {% endfor %}
             </select>
@@ -40,8 +40,10 @@
             <label>Año de fabricación</label>
             <input type="number" name="anio" min="1950" max="2025" value="{{ bus_a_editar.año_fabricacion }}" required>
             
-            <label>Última Revisión (YYYY-MM-DD)</label>
-            <input type="date" name="ultima_revision" value="{{ bus_a_editar.ultima_revision | default('', true) }}">
+            {% if rol_supervisor == 'General' %}
+                <label>Última Revisión (YYYY-MM-DD)</label>
+                <input type="date" name="ultima_revision" value="{{ bus_a_editar.ultima_revision | default('', true) }}">
+            {% endif %}
 
             <button type="submit">Guardar Cambios</button>
             <a href="{{ url_for('panel_buses') }}" class="btn-sm">Cancelar</a> 
@@ -51,7 +53,6 @@
 <section>
     <table border="1" width="100%" cellpadding="6">
         <tr>
-            <th>ID</th> 
             <th>Placa</th>
             <th>Modelo</th>
             <th>Marca</th>
@@ -62,7 +63,6 @@
 
         {% for b in buses %}
         <tr>
-            <td>{{ b.id_bus }}</td>
             <td>{{ b.placa }}</td>
             <td>{{ b.modelo }}</td>
             <td>{{ b.marca }}</td>
@@ -77,7 +77,7 @@
         </tr>
         {% else %}
         <tr>
-            <td colspan="7" align="center">No hay buses registrados en tu ruta</td>
+            <td colspan="6" align="center">No hay buses registrados en tu ruta</td>
         </tr>
         {% endfor %}
     </table>
@@ -93,13 +93,12 @@
         <label>Modelo</label>
         <select name="id_modelo_bus" required>
             {% for m in modelos %}
-                <option value="{{ m.id }}">{{ m.nombre }}</option>
+                <option value="{{ m.id }}">{{ m.marca_nombre }} - {{ m.modelo_nombre }}</option>
             {% endfor %}
         </select>
 
         <label>Año de fabricación</label>
         <input type="number" name="anio" min="1950" max="2025" required>
-
         <button type="submit">Guardar</button>
         <a href="{{ url_for('panel_buses') }}" class="btn-sm">Cancelar</a> 
     </form>

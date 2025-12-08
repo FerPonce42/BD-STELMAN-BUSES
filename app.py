@@ -99,7 +99,6 @@ def panel():
         kpi_recaudacion="S/. 1500"
     )
 
-
 # =====================================================
 # MODULOS DEL SIDEBAR (SINGLE-PAGE CRUD)
 # =====================================================
@@ -111,6 +110,11 @@ def panel_buses():
     
     id_supervisor_logueado = session['id']
     cursor = mysql.connection.cursor()
+    
+    # 0. OBTENER ROL DEL SUPERVISOR (NUEVO: Necesario para controlar permisos)
+    cursor.execute("SELECT tipo_supervisor FROM supervisor WHERE id_empleado = %s", (id_supervisor_logueado,))
+    rol_data = cursor.fetchone()
+    rol_supervisor = rol_data['tipo_supervisor'] if rol_data else None
     
     # Inicializar variables que se pasarán a la plantilla
     buses = []
@@ -137,7 +141,7 @@ def panel_buses():
         placa = request.form.get("placa")
         id_modelo_bus = request.form.get("id_modelo_bus")
         anio = request.form.get("anio") 
-        revision = request.form.get("ultima_revision") # Campo usado en la edición
+        revision = request.form.get("ultima_revision") # Campo usado en la edición (solo visible para General)
         id_bus_editado = request.form.get("id_bus_editado") # ID oculto si es una edición
 
         if id_bus_editado:
@@ -159,14 +163,26 @@ def panel_buses():
                 flash("❌ Error de seguridad: Intento de editar un bus no asignado a tu ruta.", "danger")
             else:
                 try:
-                    cursor.execute("""
+                    # Query base: Siempre actualiza Placa, Año y Modelo
+                    update_query = """
                         UPDATE bus 
                         SET placa = %s, 
                             año_fabricacion = %s, 
-                            id_modelo_bus = %s,
-                            ultima_revision = %s
-                        WHERE id_bus = %s
-                    """, (placa, anio, id_modelo_bus, revision, id_bus_editado))
+                            id_modelo_bus = %s
+                    """
+                    update_params = [placa, anio, id_modelo_bus]
+
+                    # CONDICIONAL: Solo actualiza ultima_revision si el supervisor es 'General'
+                    if rol_supervisor == 'General':
+                        update_query += ", ultima_revision = %s"
+                        update_params.append(revision)
+                    
+                    # Finalizar query
+                    update_query += " WHERE id_bus = %s"
+                    update_params.append(id_bus_editado)
+                    
+                    cursor.execute(update_query, update_params)
+                    
                     mysql.connection.commit()
                     flash("✔️ Bus editado correctamente.", "success")
                 except Exception as e:
@@ -205,8 +221,17 @@ def panel_buses():
 
     # --- 3. MANEJO DE GET (MOSTRAR DATOS Y FORMULARIOS) ---
     if id_ruta_asignada:
-        # Consulta de modelos (siempre se necesita)
-        cursor.execute("SELECT id_modelo_bus AS id, nombre FROM modelo_bus")
+        
+        # Consulta de modelos: Devolvemos el nombre del modelo y su marca 
+        cursor.execute("""
+            SELECT 
+                mb.id_modelo_bus AS id, 
+                mb.nombre AS modelo_nombre,
+                ma.nombre AS marca_nombre
+            FROM modelo_bus mb
+            JOIN marca_bus ma ON mb.id_marca_bus = ma.id_marca_bus
+            ORDER BY ma.nombre, mb.nombre
+        """)
         modelos = cursor.fetchall()
 
         # Consulta de buses
@@ -255,7 +280,12 @@ def panel_buses():
     cursor.close()
 
     # 'bus_a_editar' se usa para activar el modal de edición en el template
-    return render_template("privado/buses.html", buses=buses, modelos=modelos, bus_a_editar=bus_a_editar)
+    # Se pasa el rol para control de permisos en el HTML
+    return render_template("privado/buses.html", 
+                           buses=buses, 
+                           modelos=modelos, 
+                           bus_a_editar=bus_a_editar,
+                           rol_supervisor=rol_supervisor) # <--- ¡IMPORTANTE!
 
 
 @app.route("/panel/buses/eliminar/<int:id_bus>")
@@ -263,6 +293,7 @@ def panel_buses_eliminar(id_bus):
     if 'usuario' not in session:
         return redirect(url_for('login'))
     
+    # ... (el resto de la función es idéntico a tu versión y funciona correctamente)
     id_supervisor_logueado = session['id']
     cursor = mysql.connection.cursor()
 
@@ -299,6 +330,8 @@ def panel_buses_eliminar(id_bus):
 
     cursor.close()
     return redirect(url_for('panel_buses'))
+
+
 
 @app.route("/panel/personal")
 def panel_personal():
