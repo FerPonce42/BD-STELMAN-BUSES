@@ -1,0 +1,128 @@
+/* BOTÓN PRINCIPAL */
+.dropdown{
+    position: relative;
+}
+.dropbtn{
+    background: transparent;
+    color: #ecf0f1;
+    font-size: 15px;
+    border: none;
+    cursor: pointer;
+}
+
+/* MENÚ DESPLEGABLE */
+.dropdown-content{
+    display: none;
+    position: absolute;
+    background: white;
+    min-width: 160px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,.15);
+    z-index: 999;
+}
+
+.dropdown-content a{
+    display: block;
+    color: #2c3e50;
+    padding: 10px;
+    text-decoration:none;
+    font-weight: 500;
+}
+
+.dropdown-content a:hover{
+    background:#1abc9c;
+    color:white;
+}
+
+.dropdown:hover .dropdown-content{
+    display:block;
+}
+/* ===== NAV GENERAL ===== */
+.navbar{
+    width:100%;
+    background:#2c3e50;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:12px 35px;
+}
+
+/* LOGO */
+.navbar .logo{
+    font-size:20px;
+    color:white;
+    font-weight:bold;
+}
+
+/* MENÚ PRINCIPAL */
+.nav-links{
+    display:flex;
+    list-style:none;
+    gap:30px;
+}
+
+.nav-links a{
+    color:white;
+    font-size:15px;
+    text-decoration:none;
+}
+
+.nav-links a:hover{
+    color:#1abc9c;
+    transition:.3s;
+}
+
+/* TEXTOS */
+.link-nav{
+    color:white;
+    text-decoration:none;
+    font-size:15px;
+    font-weight:500;
+}
+
+.link-nav:hover{
+    color:#1abc9c;
+}
+
+/* CONTENEDOR */
+.dropdown{
+    position:relative;
+}
+
+/* BOTÓN */
+.dropbtn{
+    background:none;
+    color:white;
+    font-size:15px;
+    border:none;
+    cursor:pointer;
+}
+
+/* DESPLEGABLE */
+.dropdown-content{
+    display:none;
+    position:absolute;
+    background:white;
+    border-radius:6px;
+    min-width:220px;
+    box-shadow:0 4px 10px rgba(0,0,0,.2);
+    padding:5px 0;
+}
+
+.dropdown-content a{
+    display:block;
+    color:#2c3e50;
+    padding:10px 15px;
+    text-decoration:none;
+    font-size:14px;
+}
+
+.dropdown-content a:hover{
+    background:#1abc9c;
+    color:white;
+}
+
+/* ACTIVADOR */
+.dropdown:hover .dropdown-content{
+    display:block;
+}

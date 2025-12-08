@@ -1,0 +1,103 @@
+/* ------------------------------
+   RESET & BASE GLOBAL
+--------------------------------*/
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f4f5f7;
+    color: #1a1a1a;
+    line-height: 1.6;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: auto;
+}
+
+/* ------------------------------
+   NAVBAR
+--------------------------------*/
+header {
+    background: #002b5b;
+    color: white;
+    padding: 15px 0;
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+nav .logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+}
+
+nav ul li a {
+    color: white;
+    font-weight: 500;
+    transition: opacity .2s;
+}
+
+nav ul li a:hover {
+    opacity: 0.6;
+}
+
+/* ------------------------------
+   BOTONES GENERALES
+--------------------------------*/
+.btn {
+    display: inline-block;
+    padding: 12px 25px;
+    border-radius: 6px;
+    background: #005cb8;
+    color: white;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.btn:hover {
+    background: #004a94;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 2px solid #005cb8;
+    color: #005cb8;
+}
+
+.btn-outline:hover {
+    background: #005cb8;
+    color: white;
+}
+
+/* ------------------------------
+   TITULOS GENERALES
+--------------------------------*/
+h1, h2, h3 {
+    font-weight: 700;
+    color: #002b5b;
+}
+
+section {
+    padding: 60px 0;
+}

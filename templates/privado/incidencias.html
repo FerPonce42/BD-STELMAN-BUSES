@@ -1,0 +1,41 @@
+{% extends 'privado/base.html' %}
+
+{% block title %}Incidencias | Stelman{% endblock %}
+
+{% block content %}
+
+<h1>Gestión de Incidencias</h1>
+
+<section>
+    <h2>Listado</h2>
+    <table border="1" width="100%">
+        <tr>
+            <th>Fecha</th><th>Tipo</th><th>Estado</th><th>Acciones</th>
+        </tr>
+        <tr>
+            <td>05/12/2025</td><td>Operativa</td><td>Abierta</td>
+            <td>
+                <button>Editar</button>
+                <button>Eliminar</button>
+            </td>
+        </tr>
+    </table>
+</section>
+
+<section>
+    <h2>Registrar / Editar Incidencia</h2>
+    <form method="post">
+        <label>Descripción</label>
+        <textarea name="descripcion"></textarea>
+
+        <label>Tipo</label>
+        <select name="tipo">
+            <option>Operativa</option>
+            <option>Disciplinaria</option>
+        </select>
+
+        <button type="submit">Guardar</button>
+    </form>
+</section>
+
+{% endblock %}

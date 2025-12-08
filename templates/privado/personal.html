@@ -1,0 +1,46 @@
+{% extends 'privado/base.html' %}
+
+{% block title %}Personal | Stelman{% endblock %}
+
+{% block content %}
+
+<h1>Gestión de Personal</h1>
+
+<!-- TABLA -->
+<section>
+    <h2>Empleados</h2>
+    <table border="1" width="100%">
+        <tr>
+            <th>Nombre</th><th>Rol</th><th>Teléfono</th><th>Acciones</th>
+        </tr>
+        <tr>
+            <td>Juan Pérez</td><td>Chofer</td><td>987654321</td>
+            <td>
+                <button>Editar</button>
+                <button>Eliminar</button>
+            </td>
+        </tr>
+    </table>
+</section>
+
+<!-- FORMULARIO -->
+<section>
+    <h2>Registrar / Editar Empleado</h2>
+    <form method="post">
+        <label>Nombre</label>
+        <input type="text" name="nombre">
+
+        <label>Rol</label>
+        <select name="rol">
+            <option>Chofer</option>
+            <option>Cobrador</option>
+        </select>
+
+        <label>Teléfono</label>
+        <input type="text" name="telefono">
+
+        <button type="submit">Guardar</button>
+    </form>
+</section>
+
+{% endblock %}

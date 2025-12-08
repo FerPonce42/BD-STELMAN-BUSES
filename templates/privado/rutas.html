@@ -1,0 +1,35 @@
+{% extends 'privado/base.html' %}
+
+{% block title %}Rutas | Stelman{% endblock %}
+
+{% block content %}
+
+<h1>Gestión de Rutas</h1>
+
+<section>
+    <h2>Listado</h2>
+    <table border="1" width="100%">
+        <tr>
+            <th>Letra</th><th>Color</th><th>Acciones</th>
+        </tr>
+        <tr>
+            <td>A</td><td>Azul</td>
+            <td><button>Editar</button><button>Eliminar</button></td>
+        </tr>
+    </table>
+</section>
+
+<section>
+    <h2>Registrar / Editar Ruta</h2>
+    <form method="post">
+        <label>Letra</label>
+        <input name="letra">
+
+        <label>Color</label>
+        <input name="color">
+
+        <button type="submit">Guardar</button>
+    </form>
+</section>
+
+{% endblock %}

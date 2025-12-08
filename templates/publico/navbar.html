@@ -1,12 +1,33 @@
-<nav class="navbar">
-  <div class="container">
-    <a class="brand" href="{{ url_for('index') }}">Stelman Buses</a>
+<nav style="display:flex; align-items:center; justify-content:space-between;
+            background:#1f2e3d; padding:10px 30px;">
 
-    <ul class="nav">
-      <li><a href="{{ url_for('index') }}">Inicio</a></li>
-      <li><a href="{{ url_for('rutas') }}">Rutas</a></li>
-      <li><a href="{{ url_for('contacto') }}">Contacto</a></li>
-      <li><a href="{{ url_for('login') }}">Iniciar sesión</a></li>
+    <!-- LOGO A LA IZQUIERDA -->
+    <div class="logo" style="display:flex; align-items:center;">
+        <img src="{{ url_for('static', filename='imagenes/SA.png') }}"
+             alt="Stelman Buses" style="height:45px; margin-right:10px;">
+        <span style="color:white; font-size:18px; font-weight:bold;"></span>
+    </div>
+
+    <!-- MENÚ PRINCIPAL -->
+    <ul style="display:flex; list-style:none; gap:25px; margin:0;">
+        
+        <li><a href="{{ url_for('index') }}" style="color:white; text-decoration:none;">Inicio</a></li>
+
+        <!-- MENÚ RUTAS -->
+        <li class="dropdown">
+            <a class="dropbtn">Rutas ▾</a>
+            <div class="dropdown-content">
+                <a href="{{ url_for('detalle_ruta', codigo='A') }}">Ruta A • Paucarpata → Cercado</a>
+                <a href="{{ url_for('detalle_ruta', codigo='B') }}">Ruta B • Cerro Colorado → Centro</a>
+                <a href="{{ url_for('detalle_ruta', codigo='C') }}">Ruta C • Miraflores → Terminal</a>
+                <a href="{{ url_for('detalle_ruta', codigo='D') }}">Ruta D • Alto Selva Alegre → Mall</a>
+                <a href="{{ url_for('detalle_ruta', codigo='E') }}">Ruta E • Socabaya → Universidad</a>
+                <a href="{{ url_for('detalle_ruta', codigo='F') }}">Ruta F • Cayma → Yanahuara</a>
+            </div>
+        </li>
+
+        <li><a href="{{ url_for('contacto') }}" style="color:white; text-decoration:none;">Contacto</a></li>
+        <li><a href="{{ url_for('login') }}" style="color:white; text-decoration:none;">Ingresar</a></li>
+
     </ul>
-  </div>
 </nav>

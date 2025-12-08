@@ -7,7 +7,7 @@
   <h1>Iniciar sesión</h1>
   <p>Accede con tu usuario de supervisor.</p>
 
-  <form action="#" method="post" class="login-form">
+  <form action="{{ url_for('login') }}" method="post" class="login-form">
     <label for="usuario">Usuario</label>
     <input id="usuario" name="usuario" type="text" required>
 

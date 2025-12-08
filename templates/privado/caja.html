@@ -1,0 +1,31 @@
+{% extends 'privado/base.html' %}
+
+{% block title %}Caja | Stelman{% endblock %}
+
+{% block content %}
+
+<h1>Recaudación por Ruta</h1>
+
+<section>
+    <h2>Historial</h2>
+    <table border="1" width="100%">
+        <tr>
+            <th>Fecha</th><th>Monto</th><th>Acciones</th>
+        </tr>
+        <tr>
+            <td>05/12/2025</td><td>S/. 1500</td>
+            <td><button>Eliminar</button></td>
+        </tr>
+    </table>
+</section>
+
+<section>
+    <h2>Registrar Recaudación</h2>
+    <form method="post">
+        <label>Monto</label>
+        <input name="monto">
+        <button type="submit">Guardar</button>
+    </form>
+</section>
+
+{% endblock %}

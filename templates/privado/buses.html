@@ -1,0 +1,45 @@
+{% extends 'privado/base.html' %}
+
+{% block title %}Buses | Stelman{% endblock %}
+
+{% block content %}
+
+<h1>Gestión de Buses</h1>
+
+<!-- TABLA LISTADO -->
+<section>
+    <h2>Listado</h2>
+    <!-- aquí insertas tabla dinámica después -->
+    <table border="1" width="100%">
+        <tr>
+            <th>Placa</th><th>Modelo</th><th>Marca</th><th>Acciones</th>
+        </tr>
+        <!-- loop con buses -->
+        <tr>
+            <td>ABC-123</td><td>Urban X</td><td>Toyota</td>
+            <td>
+                <button>Editar</button>
+                <button>Eliminar</button>
+            </td>
+        </tr>
+    </table>
+</section>
+
+<!-- FORMULARIO ALTA -->
+<section>
+    <h2>Agregar / Editar Bus</h2>
+    <form method="post">
+        <label>Placa</label>
+        <input type="text" name="placa">
+
+        <label>Modelo</label>
+        <input type="text" name="modelo">
+
+        <label>Marca</label>
+        <input type="text" name="marca">
+
+        <button type="submit">Guardar</button>
+    </form>
+</section>
+
+{% endblock %}

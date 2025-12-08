@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>{% block title %}Panel | Stelman{% endblock %}</title>
+</head>
+
+<body>
+
+<div style="display:flex;min-height:100vh;">
+    
+    <!-- SIDEBAR -->
+    <aside style="width:200px;background:#f0f0f0;padding:10px;">
+        <h3>Supervisor</h3>
+
+        <ul style="list-style:none;padding-left:0;">
+
+            <li><a href="{{ url_for('panel') }}">📊 Dashboard</a></li>
+            <li><a href="{{ url_for('panel_buses') }}">🚌 Buses</a></li>
+            <li><a href="{{ url_for('panel_personal') }}">👥 Personal</a></li>
+            <li><a href="{{ url_for('panel_incidencias') }}">⚠ Incidencias</a></li>
+            <li><a href="{{ url_for('panel_caja') }}">💰 Caja</a></li>
+
+            {% if tipo_supervisor == 'JEFE' %}
+                <li><a href="{{ url_for('panel_rutas') }}">🗺 Rutas</a></li>
+                <li><a href="{{ url_for('panel_reportes') }}">📑 Reportes</a></li>
+            {% endif %}
+
+            <li><a href="{{ url_for('logout') }}">⛔ Cerrar sesión</a></li>
+        </ul>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main style="flex:1;padding:20px;">
+        {% block content %}{% endblock %}
+    </main>
+
+</div>
+
+</body>
+</html>

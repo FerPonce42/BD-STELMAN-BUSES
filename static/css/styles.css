@@ -1,1 +1,54 @@
-/*WAWAWAW*/
+/* NAVBAR GENERAL */
+.navbar {
+    background: #002b5b;
+    padding: 14px 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    width: 100%;
+}
+
+.navbar .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* LOGO */
+.navbar .brand {
+    color: #ffffff;
+    font-size: 1.4rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+/* LINKS */
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+}
+
+.nav-links li a {
+    color: #ffffff;
+    font-weight: 500;
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.nav-links li a:hover {
+    opacity: 0.6;
+}
+
+/* BOTÓN LOGIN */
+.navbar .btn-login {
+    background: #1abc9c;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 50px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.navbar .btn-login:hover {
+    background: #16a085;
+}

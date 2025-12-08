@@ -1,0 +1,93 @@
+{% extends 'publico/base.html' %}
+
+{% block contenido %}
+
+<div class="ruta-container">
+
+    <h1 class="titulo-ruta">Ruta {{ codigo }}</h1>
+    <p class="descripcion">Información detallada y aproximada del recorrido.</p>
+
+    <div class="map-box">
+        <img src="{{ url_for('static', filename='img/rutas/ruta' + codigo + '.jpg') }}" alt="Mapa de la ruta {{ codigo }}">
+    </div>
+
+    <section class="detalle-info">
+
+        {% if codigo == 'A' %}
+        <h2>📍 Recorrido Principal</h2>
+        <ul>
+            <li>Plaza de Armas → Yanahuara → Cayma</li>
+            <li>Retorno por Av. Ejército y Real Plaza Arequipa</li>
+            <li>Conexiones con rutas B y F</li>
+        </ul>
+
+        {% elif codigo == 'B' %}
+        <h2>📍 Recorrido Principal</h2>
+        <ul>
+            <li>Paucarpata → Av. Kennedy → Palacio Metropolitano</li>
+            <li>Retorno por Av. Independencia</li>
+        </ul>
+
+        {% elif codigo == 'C' %}
+        <h2>📍 Recorrido Principal</h2>
+        <ul>
+            <li>Umacollo → UNSA Ingenierías → Cercado</li>
+            <li>Llega a Terminal Terrestre y Mall Aventura</li>
+        </ul>
+
+        {% elif codigo == 'D' %}
+        <ul>
+            <li>Cerro Colorado → Zamacola → Maestro</li>
+            <li>Termina en Av. La Marina</li>
+        </ul>
+
+        {% elif codigo == 'E' %}
+        <ul>
+            <li>Sabandía → Characato → Cercado</li>
+            <li>Ruta de mayor tránsito</li>
+        </ul>
+
+        {% elif codigo == 'F' %}
+        <ul>
+            <li>Tiabaya → Hunter → Cercado</li>
+            <li>Conexión con Ruta A y C</li>
+        </ul>
+        {% endif %}
+    </section>
+
+</div>
+
+<style>
+.ruta-container{
+    width: 80%;
+    margin: 0 auto;
+    text-align: center;
+    padding: 30px;
+}
+
+.titulo-ruta{
+    font-size: 38px;
+    font-weight: bold;
+    color: #1abc9c;
+}
+
+.map-box img{
+    width: 90%;
+    border-radius: 12px;
+    margin: 25px auto;
+    box-shadow: 0 8px 25px rgba(0,0,0,.3);
+}
+
+.detalle-info{
+    text-align: left;
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0,0,0,.15);
+    width: 80%;
+    margin: auto;
+}
+.detalle-info ul li{ font-size: 17px; margin: 10px 0; }
+</style>
+
+{% endblock %}

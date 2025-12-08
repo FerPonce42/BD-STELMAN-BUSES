@@ -1,0 +1,21 @@
+{% extends 'privado/base.html' %}
+
+{% block title %}Dashboard | Stelman{% endblock %}
+
+{% block content %}
+
+<h1>Bienvenido {{ nombre_supervisor }}</h1>
+
+<p>Tipo: {{ tipo_supervisor }}</p>
+
+<section>
+    <h2>Indicadores</h2>
+
+    <ul>
+        <li>Buses operativos: {{ kpi_buses }}</li>
+        <li>Incidencias abiertas: {{ kpi_incidencias }}</li>
+        <li>Recaudación hoy: {{ kpi_recaudacion }}</li>
+    </ul>
+</section>
+
+{% endblock %}
