@@ -15,11 +15,15 @@
     {% endif %}
 {% endwith %}
 
+<!-- BOTONES SUPERIORES -->
+<section>
+    <a href="#" class="btn">Nuevo</a>
+    <a href="#" class="btn">Editar</a>
+    <a href="#" class="btn">Eliminar</a>
+</section>
 
 <!-- TABLA LISTADO -->
-<section>
-    <h2>Listado de Buses</h2>
-
+<section style="margin-top: 15px;">
     <table border="1" width="100%" cellpadding="6">
         <tr>
             <th>Placa</th>
@@ -27,7 +31,6 @@
             <th>Marca</th>
             <th>Año</th>
             <th>Última revisión</th>
-            <th>Acciones</th>
         </tr>
 
         {% for b in buses %}
@@ -37,19 +40,14 @@
             <td>{{ b.marca }}</td>
             <td>{{ b.año }}</td>
             <td>{{ b.revision }}</td>
-            <td>
-                <a href="#" class="btn">Editar</a>
-                <a href="#" class="btn">Eliminar</a>
-            </td>
         </tr>
         {% else %}
         <tr>
-            <td colspan="6" align="center">No hay buses registrados</td>
+            <td colspan="5" align="center">No hay buses registrados</td>
         </tr>
         {% endfor %}
     </table>
 </section>
-
 
 <!-- FORMULARIO ALTA -->
 <section style="margin-top: 20px;">
@@ -66,6 +64,10 @@
                 <option value="{{ m.id }}">{{ m.nombre }}</option>
             {% endfor %}
         </select>
+
+        <!-- Nuevo: campo año -->
+        <label>Año de fabricación</label>
+        <input type="number" name="anio" min="1950" max="2025" required>
 
         <button type="submit">Guardar</button>
     </form>

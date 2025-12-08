@@ -49,7 +49,7 @@ def contacto():
 
 
 # =====================================================
-# LOGIN / AUTH
+# LOGIN / AUTH (Restaurado)
 # =====================================================
 @app.route('/login', methods=['GET','POST'])
 def login():
@@ -64,13 +64,13 @@ def login():
             WHERE usuario=%s AND contraseña=%s
         """, (usuario, clave))
 
-        cuenta = cursor.fetchone()
+        cuenta = cursor.fetchone() 
         cursor.close()
 
         print("DEBUG consulta:", cuenta)
 
         if cuenta:
-            session['id'] = cuenta['id_empleado']
+            session['id'] = cuenta['id_empleado'] 
             session['rol'] = cuenta['tipo_supervisor']
             session['usuario'] = cuenta['usuario']
 
@@ -83,7 +83,7 @@ def login():
 
 
 # =====================================================
-# PANEL PRIVADO - DASHBOARD
+# PANEL PRIVADO - DASHBOARD (Restaurado)
 # =====================================================
 @app.route('/panel')
 def panel():
@@ -101,57 +101,90 @@ def panel():
 
 
 # =====================================================
-# MODULOS DEL SIDEBAR
+# MODULOS DEL SIDEBAR (CORREGIDO)
 # =====================================================
 
 @app.route("/panel/buses", methods=["GET", "POST"])
 def panel_buses():
     if 'usuario' not in session:
         return redirect(url_for('login'))
+    
+    id_supervisor_logueado = session['id']
 
     cursor = mysql.connection.cursor()
 
-    ### INSERTAR BUS
+    # 1. OBTENER LA ID DE LA RUTA ASIGNADA AL SUPERVISOR
+    cursor.execute("""
+        SELECT sr.id_ruta 
+        FROM supervisor_ruta sr
+        WHERE sr.id_empleado = %s AND sr.fecha_fin IS NULL
+    """, (id_supervisor_logueado,))
+    
+    resultado_ruta = cursor.fetchone() 
+    
+    # 2. Manejo si el supervisor NO tiene ruta asignada
+    if not resultado_ruta:
+        flash("🚫 No tienes rutas activas asignadas. No se muestran buses.", "warning")
+        buses = []
+        id_ruta_asignada = None 
+    else:
+        # 💡 CORRECCIÓN CRÍTICA: Usamos la clave de texto 'id_ruta' en lugar del índice [0]
+        id_ruta_asignada = resultado_ruta['id_ruta']
+
+    ### 3. INSERTAR BUS
     if request.method == "POST":
         placa = request.form.get("placa")
         id_modelo_bus = request.form.get("id_modelo_bus")
+        anio = request.form.get("anio") 
 
         cursor.execute("SELECT placa FROM bus WHERE placa=%s", (placa,))
         existe = cursor.fetchone()
 
         if existe:
             flash("❌ Esa placa ya está registrada", "danger")
+        elif not id_ruta_asignada:
+             flash("❌ No se puede registrar un bus sin tener una ruta asignada", "danger")
         else:
+            # 3a. Insertar el nuevo bus
             cursor.execute("""
                 INSERT INTO bus (placa, año_fabricacion, id_modelo_bus, id_almacen)
-                VALUES (%s, YEAR(NOW()), %s, 1)
-            """, (placa, id_modelo_bus))
+                VALUES (%s, %s, %s, 1)
+            """, (placa, anio, id_modelo_bus))
+            
+            # 3b. Asignar el nuevo bus a la ruta del supervisor
+            cursor.execute("""
+                INSERT INTO bus_ruta (id_bus, id_ruta, fecha_asignacion)
+                VALUES (LAST_INSERT_ID(), %s, CURDATE())
+            """, (id_ruta_asignada,)) 
+            
             mysql.connection.commit()
-            flash("✔️ Bus registrado correctamente", "success")
+            flash("✔️ Bus registrado y asignado a tu ruta correctamente", "success")
 
-    ### CONSULTAR MODELOS PARA SELECT
+    ### 4. CONSULTAR MODELOS PARA SELECT
     cursor.execute("SELECT id_modelo_bus AS id, nombre FROM modelo_bus")
     modelos = cursor.fetchall()
 
-    ### CONSULTAR buses reales
-    cursor.execute("""
-        SELECT 
-            b.placa,
-            m.nombre AS modelo,
-            ma.nombre AS marca,
-            b.año_fabricacion AS año,
-            b.ultima_revision AS revision
-        FROM bus b
-        JOIN modelo_bus m ON b.id_modelo_bus = m.id_modelo_bus
-        JOIN marca_bus ma ON m.id_marca_bus = ma.id_marca_bus
-    """)
-    buses = cursor.fetchall()
+    ### 5. CONSULTAR BUSES REALES (FILTRADO)
+    if id_ruta_asignada:
+        cursor.execute("""
+            SELECT 
+                b.placa,
+                m.nombre AS modelo,
+                ma.nombre AS marca,
+                b.año_fabricacion AS año,
+                b.ultima_revision AS revision
+            FROM bus b
+            JOIN modelo_bus m ON b.id_modelo_bus = m.id_modelo_bus
+            JOIN marca_bus ma ON m.id_marca_bus = ma.id_marca_bus
+            JOIN bus_ruta br ON b.id_bus = br.id_bus   
+            WHERE br.id_ruta = %s                    
+              AND br.fecha_desasignacion IS NULL     
+        """, (id_ruta_asignada,))
+        buses = cursor.fetchall()
 
     cursor.close()
 
     return render_template("privado/buses.html", buses=buses, modelos=modelos)
-
-
 
 @app.route("/panel/personal")
 def panel_personal():
