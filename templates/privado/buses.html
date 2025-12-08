@@ -6,7 +6,6 @@
 
 <h1>Gestión de Buses</h1>
 
-<!-- MENSAJES FLASH -->
 {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
         {% for category, message in messages %}
@@ -15,46 +14,79 @@
     {% endif %}
 {% endwith %}
 
-<!-- BOTONES SUPERIORES -->
-<section>
-    <a href="#" class="btn">Nuevo</a>
-    <a href="#" class="btn">Editar</a>
-    <a href="#" class="btn">Eliminar</a>
+<section style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
+    <a href="{{ url_for('panel_buses', nuevo='true') }}#modal-registro" class="btn">➕ Nuevo</a> 
 </section>
 
-<!-- TABLA LISTADO -->
-<section style="margin-top: 15px;">
+{% if bus_a_editar %}
+    <div id="modal-edicion" style="border: 2px solid orange; padding: 20px; margin-top: 20px; margin-bottom: 20px;">
+        <h2>✏️ Editar Bus: {{ bus_a_editar.placa }}</h2>
+
+        <form method="post">
+            <input type="hidden" name="id_bus_editado" value="{{ bus_a_editar.id_bus }}">
+
+            <label>Placa</label>
+            <input type="text" name="placa" value="{{ bus_a_editar.placa }}" required>
+
+            <label>Modelo</label>
+            <select name="id_modelo_bus" required>
+                {% for m in modelos %}
+                    <option value="{{ m.id }}" {% if m.id == bus_a_editar.id_modelo_bus %}selected{% endif %}>
+                        {{ m.nombre }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <label>Año de fabricación</label>
+            <input type="number" name="anio" min="1950" max="2025" value="{{ bus_a_editar.año_fabricacion }}" required>
+            
+            <label>Última Revisión (YYYY-MM-DD)</label>
+            <input type="date" name="ultima_revision" value="{{ bus_a_editar.ultima_revision | default('', true) }}">
+
+            <button type="submit">Guardar Cambios</button>
+            <a href="{{ url_for('panel_buses') }}" class="btn-sm">Cancelar</a> 
+        </form>
+    </div>
+{% endif %}
+<section>
     <table border="1" width="100%" cellpadding="6">
         <tr>
+            <th>ID</th> 
             <th>Placa</th>
             <th>Modelo</th>
             <th>Marca</th>
             <th>Año</th>
             <th>Última revisión</th>
+            <th>Acciones</th> 
         </tr>
 
         {% for b in buses %}
         <tr>
+            <td>{{ b.id_bus }}</td>
             <td>{{ b.placa }}</td>
             <td>{{ b.modelo }}</td>
             <td>{{ b.marca }}</td>
             <td>{{ b.año }}</td>
-            <td>{{ b.revision }}</td>
+            <td>{{ b.revision | default('N/A', true) }}</td>
+            <td>
+                <a href="{{ url_for('panel_buses', id_editar=b.id_bus) }}#modal-edicion" class="btn-sm">✏️ Editar</a>
+                
+                <a href="{{ url_for('panel_buses_eliminar', id_bus=b.id_bus) }}" class="btn-sm" 
+                   onclick="return confirm('¿Seguro que deseas desasignar el bus {{ b.placa }} de tu ruta?')">🗑️ Desasignar</a>
+            </td>
         </tr>
         {% else %}
         <tr>
-            <td colspan="5" align="center">No hay buses registrados</td>
+            <td colspan="7" align="center">No hay buses registrados en tu ruta</td>
         </tr>
         {% endfor %}
     </table>
 </section>
 
-<!-- FORMULARIO ALTA -->
-<section style="margin-top: 20px;">
+<div id="modal-registro" style="{% if 'nuevo' not in request.args %}display: none;{% endif %} border: 1px solid #ccc; padding: 20px; margin-top: 20px;">
     <h2>Registrar Nuevo Bus</h2>
 
     <form method="post">
-
         <label>Placa</label>
         <input type="text" name="placa" required>
 
@@ -65,12 +97,11 @@
             {% endfor %}
         </select>
 
-        <!-- Nuevo: campo año -->
         <label>Año de fabricación</label>
         <input type="number" name="anio" min="1950" max="2025" required>
 
         <button type="submit">Guardar</button>
+        <a href="{{ url_for('panel_buses') }}" class="btn-sm">Cancelar</a> 
     </form>
-</section>
-
+</div>
 {% endblock %}
