@@ -1,46 +1,120 @@
 {% extends 'privado/base.html' %}
 
-{% block title %}Personal | Stelman{% endblock %}
+{% block title %}Gestión de Choferes{% endblock %}
 
 {% block content %}
 
-<h1>Gestión de Personal</h1>
+<h1>👥 Gestión de Choferes</h1>
 
-<!-- TABLA -->
-<section>
-    <h2>Empleados</h2>
-    <table border="1" width="100%">
-        <tr>
-            <th>Nombre</th><th>Rol</th><th>Teléfono</th><th>Acciones</th>
-        </tr>
-        <tr>
-            <td>Juan Pérez</td><td>Chofer</td><td>987654321</td>
-            <td>
-                <button>Editar</button>
-                <button>Eliminar</button>
-            </td>
-        </tr>
-    </table>
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<section style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
+    <a href="{{ url_for('panel_personal') }}?nuevo_chofer=true#modal-registro-chofer" class="btn btn-primary">➕ Nuevo Chofer</a> 
 </section>
 
-<!-- FORMULARIO -->
+<hr>
+
 <section>
-    <h2>Registrar / Editar Empleado</h2>
-    <form method="post">
+    <h2>Choferes Gestionables (Ruta ID: {{ id_ruta | default('N/A') }})</h2>
+    
+    {% if id_ruta %}
+    <p style="color: green; font-weight: bold;">[INFO] La lista incluye a: 1) Choferes con historial en tu ruta y 2) Choferes nuevos sin asignación (disponibles).</p>
+    {% else %}
+    <p style="color: orange; font-weight: bold;">[ALERTA] No tienes una ruta activa asignada. Contacta al administrador.</p>
+    {% endif %}
+
+    <table border="1" width="100%" cellpadding="6">
+        <tr>
+            <th>ID Empleado</th>
+            <th>Nombre Completo</th>
+            <th>DNI</th>
+            <th>Licencia</th>
+            <th>Experiencia</th>
+            <th>Acciones</th> 
+        </tr>
+
+        {% for c in choferes_existentes %}
+        <tr>
+            <td>{{ c.id_empleado }}</td>
+            <td>{{ c.nombre }} {{ c.apellido }}</td>
+            <td>{{ c.dni }}</td>
+            <td>{{ c.nro_licencia }} ({{ c.tipo_licencia }})</td>
+            <td>{{ c.años_experiencia }} años</td>
+            
+            <td>
+                <a href="#" class="btn-sm">✏️ Editar</a>
+                <a href="#" class="btn-sm btn-warning">🗑️ Eliminar</a>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="6" align="center">No hay choferes gestionables para tu ruta actualmente.</td>
+        </tr>
+        {% endfor %}
+    </table>
+</section>
+
+<hr style="margin-top: 40px; border-color: #333;">
+
+
+{% if 'nuevo_chofer' in request.args %}
+<div id="modal-registro-chofer" style="border: 2px solid green; padding: 20px; margin-top: 20px; margin-bottom: 20px;">
+    <h2>➕ Registrar Nuevo Chofer</h2>
+    <form method="post" action="{{ url_for('registrar_personal') }}">
+        <input type="hidden" name="tipo_registro" value="chofer">
+        
+        <h3>Datos Personales</h3>
         <label>Nombre</label>
-        <input type="text" name="nombre">
+        <input type="text" name="nombre" required>
+        
+        <label>Apellido</label>
+        <input type="text" name="apellido" required>
+        
+        <label>DNI</label>
+        <input type="text" name="dni" required>
 
-        <label>Rol</label>
-        <select name="rol">
-            <option>Chofer</option>
-            <option>Cobrador</option>
-        </select>
-
-        <label>Teléfono</label>
+        <label>Teléfono (Opcional)</label>
         <input type="text" name="telefono">
 
-        <button type="submit">Guardar</button>
+        <hr>
+        <h3>Datos Laborales</h3>
+        
+        <label>Sueldo Base</label>
+        <input type="number" name="sueldo" step="0.01" min="0" required>
+        
+        <label>Fecha de Ingreso</label>
+        <input type="date" name="fecha_ingreso" required>
+
+        <hr>
+        <h3>Datos de Conducción</h3>
+        
+        <label>Número de Licencia</label>
+        <input type="text" name="nro_licencia" required>
+        
+        <label>Años de Experiencia</label>
+        <input type="number" name="anos_experiencia" min="0" required>
+        
+        <label>Tipo de Licencia</label>
+        <select name="id_tipo_licencia" required>
+            <option value="" disabled selected>Seleccione Categoría</option>
+            {% for tl in tipos_licencia %}
+                <option value="{{ tl.id_tipo_licencia }}">{{ tl.categoria }}</option>
+            {% endfor %}
+        </select>
+        
+        <label>Historial de Infracciones (Opcional)</label>
+        <textarea name="historial_infracciones"></textarea>
+
+        <button type="submit">Guardar Chofer</button>
+        <a href="{{ url_for('panel_personal') }}" class="btn-sm">Cancelar</a> 
     </form>
-</section>
+</div>
+{% endif %}
 
 {% endblock %}
