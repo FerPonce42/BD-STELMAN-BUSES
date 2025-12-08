@@ -345,148 +345,162 @@ def panel_buses_eliminar(id_bus):
 def panel_personal():
     if 'usuario' not in session:
         return redirect(url_for('login'))
-    
-    id_supervisor_logueado = session['id']
-    cursor = mysql.connection.cursor()
-    
-    # 1. Obtener ID de la Ruta Asignada al Supervisor
-    id_ruta_asignada = None
-    cursor.execute("""
-        SELECT sr.id_ruta 
-        FROM supervisor_ruta sr
-        WHERE sr.id_empleado = %s AND sr.fecha_fin IS NULL
-    """, (id_supervisor_logueado,))
-    
-    resultado_ruta = cursor.fetchone() 
-    
-    if not resultado_ruta:
-        flash("🚫 No tienes rutas activas asignadas. No se puede gestionar el personal sin una ruta.", "warning")
-        cursor.close()
-        return render_template("privado/personal.html", 
-                               choferes_existentes=[], 
-                               id_ruta=None, 
-                               tipos_licencia=[])
 
-    id_ruta_asignada = resultado_ruta['id_ruta']
-    
-    # 2. Obtener listado de Choferes gestionables por el Supervisor (Choferes de la Ruta UNION Choferes Nuevos)
-    # Se usa UNION para combinar: A) Los que tienen historial en la ruta. B) Los que no tienen NINGUNA asignación (nuevos).
-    
-    consulta_sql = """
+    cursor = mysql.connection.cursor()
+    id_supervisor = session['id']
+
+    # ========== Ruta del supervisor ==========
+    cursor.execute("""
+        SELECT id_ruta
+        FROM supervisor_ruta
+        WHERE id_empleado=%s AND fecha_fin IS NULL
+    """, (id_supervisor,))
+    row = cursor.fetchone()
+
+    if not row:
+        cursor.close()
+        return render_template("privado/personal.html",
+                               choferes_existentes=[], id_ruta=None,
+                               tipos_licencia=[], editar_personal=None)
+
+    id_ruta = row['id_ruta']
+
+    # ========== Choferes visibles ==========
+    cursor.execute("""
         (
-            -- PARTE A: Choferes con historial de asignación en la ruta del supervisor (e.g., Jordan Ayala)
-            SELECT 
-                e.id_empleado, p.nombre, p.apellido, p.dni, 
-                ch.nro_licencia, tl.categoria AS tipo_licencia, ch.años_experiencia
+            SELECT e.id_empleado, p.nombre, p.apellido, p.dni,
+                   ch.nro_licencia, tl.categoria, ch.años_experiencia
             FROM empleado e
-            INNER JOIN persona p ON e.id_persona = p.id_persona
-            INNER JOIN chofer ch ON e.id_empleado = ch.id_empleado
-            INNER JOIN tipo_licencia tl ON ch.id_tipo_licencia = tl.id_tipo_licencia
-            
+            JOIN persona p ON e.id_persona=p.id_persona
+            JOIN chofer ch ON e.id_empleado=ch.id_empleado
+            JOIN tipo_licencia tl ON tl.id_tipo_licencia=ch.id_tipo_licencia
             WHERE e.id_empleado IN (
                 SELECT DISTINCT ab.id_empleado
                 FROM asignacion_bus ab
-                INNER JOIN bus b ON ab.id_bus = b.id_bus
-                INNER JOIN bus_ruta br ON b.id_bus = br.id_bus
-                WHERE br.id_ruta = %s
+                JOIN bus b ON ab.id_bus=b.id_bus
+                JOIN bus_ruta br ON b.id_bus=br.id_bus
+                WHERE br.id_ruta=%s
             )
         )
         UNION
         (
-            -- PARTE B: Choferes que nunca han sido asignados a NINGÚN bus (Nuevos, e.g., Fafa Fefe)
-            SELECT 
-                e.id_empleado, p.nombre, p.apellido, p.dni, 
-                ch.nro_licencia, tl.categoria AS tipo_licencia, ch.años_experiencia
+            SELECT e.id_empleado, p.nombre, p.apellido, p.dni,
+                   ch.nro_licencia, tl.categoria, ch.años_experiencia
             FROM empleado e
-            INNER JOIN persona p ON e.id_persona = p.id_persona
-            INNER JOIN chofer ch ON e.id_empleado = ch.id_empleado
-            INNER JOIN tipo_licencia tl ON ch.id_tipo_licencia = tl.id_tipo_licencia
-            
-            WHERE e.id_empleado NOT IN (
-                SELECT DISTINCT id_empleado FROM asignacion_bus
-            )
+            JOIN persona p ON e.id_persona=p.id_persona
+            JOIN chofer ch ON e.id_empleado=ch.id_empleado
+            JOIN tipo_licencia tl ON tl.id_tipo_licencia=ch.id_tipo_licencia
+            WHERE e.id_empleado NOT IN (SELECT id_empleado FROM asignacion_bus)
         )
-        ORDER BY apellido, nombre
-    """
-    
-    cursor.execute(consulta_sql, (id_ruta_asignada,))
-    choferes_existentes = cursor.fetchall()
+    """, (id_ruta,))
 
-    # 3. Obtener Catálogos (para el formulario de registro)
-    cursor.execute("SELECT id_tipo_licencia, categoria FROM tipo_licencia ORDER BY categoria")
+    choferes = cursor.fetchall()
+
+    cursor.execute("SELECT * FROM tipo_licencia ORDER BY categoria")
     tipos_licencia = cursor.fetchall()
-    
-    cursor.close()
 
-    return render_template("privado/personal.html", 
-                           choferes_existentes=choferes_existentes, 
-                           id_ruta=id_ruta_asignada,
-                           tipos_licencia=tipos_licencia)
+    editar_personal = None
 
+    # ====== Si el request pide editar ==========
+    if "editar" in request.args:
+        cursor.execute("""
+            SELECT e.id_empleado, p.nombre, p.apellido, p.dni, p.telefono,
+                   e.sueldo,
+                   ch.nro_licencia, ch.años_experiencia, ch.id_tipo_licencia,
+                   ch.historial_infracciones
+            FROM empleado e
+            JOIN persona p ON e.id_persona=p.id_persona
+            JOIN chofer ch ON ch.id_empleado=e.id_empleado
+            WHERE e.id_empleado=%s
+        """, (request.args["editar"],))
+        editar_personal = cursor.fetchone()
 
-# ==============================================================================
-# FUNCIÓN DE REGISTRO DE CHOFER (Corregida con 'sueldo' y 'tipo_empleado')
-# ==============================================================================
-
-@app.route("/registrar_personal", methods=['POST'])
-def registrar_personal():
-    if 'usuario' not in session:
-        return redirect(url_for('login'))
-        
-    tipo_registro = request.form['tipo_registro']
-
-    if tipo_registro == 'chofer':
-        nombre = request.form['nombre']
-        apellido = request.form['apellido']
-        dni = request.form['dni']
-        telefono = request.form.get('telefono')
-        sueldo = request.form['sueldo']
-        fecha_ingreso = request.form['fecha_ingreso']
-        nro_licencia = request.form['nro_licencia']
-        anos_experiencia = request.form['anos_experiencia']
-        id_tipo_licencia = request.form['id_tipo_licencia']
-        historial_infracciones = request.form.get('historial_infracciones')
-        
+    # ====== Si el request pide eliminar ==========
+    if "eliminar" in request.args:
         try:
-            cursor = mysql.connection.cursor()
-            
-            mysql.connection.begin() 
-            
-            # 2. Insertar en tabla persona
-            cursor.execute("""
-                INSERT INTO persona (nombre, apellido, dni, telefono) 
-                VALUES (%s, %s, %s, %s)
-            """, (nombre, apellido, dni, telefono))
-            id_persona = cursor.lastrowid
-            
-            # 3. Insertar en tabla empleado (Usando 'sueldo' y 'tipo_empleado')
-            cursor.execute("""
-                INSERT INTO empleado (id_persona, sueldo, fecha_ingreso, tipo_empleado)
-                VALUES (%s, %s, %s, 'Chofer') 
-            """, (id_persona, sueldo, fecha_ingreso))
-            id_empleado = cursor.lastrowid
-            
-            # 4. Insertar en tabla chofer
-            cursor.execute("""
-                INSERT INTO chofer (id_empleado, id_tipo_licencia, nro_licencia, años_experiencia, historial_infracciones)
-                VALUES (%s, %s, %s, %s, %s)
-            """, (id_empleado, id_tipo_licencia, nro_licencia, anos_experiencia, historial_infracciones))
-            
+            mysql.connection.begin()
+
+            id_empleado = request.args["eliminar"]
+
+            cursor.execute("DELETE FROM chofer WHERE id_empleado=%s", (id_empleado,))
+            cursor.execute("DELETE FROM empleado WHERE id_empleado=%s", (id_empleado,))
+
             mysql.connection.commit()
-            cursor.close()
-            
-            flash(f"🎉 Chofer {nombre} {apellido} registrado exitosamente. Ya aparece en tu lista de gestión.", "success")
-            
-            # Redirige al panel para que el chofer sea visible
-            return redirect(url_for('panel_personal'))
+            flash("✔ Registro eliminado.", "success")
 
         except Exception as e:
             mysql.connection.rollback()
-            flash(f"❌ Error al registrar el Chofer: {str(e)}", "danger")
-            
-            return redirect(url_for('panel_personal') + '?nuevo_chofer=true')
-    
-    return redirect(url_for('panel_personal'))
+            flash(f"❌ Error: {str(e)}", "danger")
+
+        cursor.close()
+        return redirect(url_for("panel_personal"))
+
+    cursor.close()
+
+    return render_template("privado/personal.html",
+                           choferes_existentes=choferes,
+                           id_ruta=id_ruta,
+                           tipos_licencia=tipos_licencia,
+                           editar_personal=editar_personal)
+
+
+@app.route("/actualizar_personal", methods=['POST'])
+def actualizar_personal():
+
+    cursor = mysql.connection.cursor()
+    id_empleado = request.form["id_empleado"]
+
+    try:
+        mysql.connection.begin()
+
+        # persona
+        cursor.execute("""
+            UPDATE persona p
+            JOIN empleado e ON e.id_persona=p.id_persona
+            SET p.nombre=%s, p.apellido=%s, p.dni=%s, p.telefono=%s
+            WHERE e.id_empleado=%s
+        """, (
+            request.form["nombre"],
+            request.form["apellido"],
+            request.form["dni"],
+            request.form["telefono"],
+            id_empleado
+        ))
+
+        # empleado
+        cursor.execute("""
+            UPDATE empleado
+            SET sueldo=%s
+            WHERE id_empleado=%s
+        """, (request.form["sueldo"], id_empleado))
+
+        # chofer
+        cursor.execute("""
+            UPDATE chofer
+            SET nro_licencia=%s, años_experiencia=%s,
+                id_tipo_licencia=%s, historial_infracciones=%s
+            WHERE id_empleado=%s
+        """, (
+            request.form["nro_licencia"],
+            request.form["anos_experiencia"],
+            request.form["id_tipo_licencia"],
+            request.form["historial_infracciones"],
+            id_empleado
+        ))
+
+        mysql.connection.commit()
+        flash("✔ Datos actualizados.", "success")
+
+    except Exception as e:
+        mysql.connection.rollback()
+        flash(f"❌ Error: {str(e)}", "danger")
+
+    cursor.close()
+    return redirect(url_for("panel_personal"))
+
+
+
+
 
 @app.route("/panel/rutas")
 def panel_rutas():
