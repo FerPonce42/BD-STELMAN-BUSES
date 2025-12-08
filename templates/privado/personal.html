@@ -15,7 +15,9 @@
 {% endwith %}
 
 <section style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
-    <a href="{{ url_for('panel_personal', nuevo_chofer='true') }}#modal-registro-chofer" class="btn btn-primary">➕ Nuevo Chofer</a>
+    <a href="{{ url_for('panel_personal', nuevo_chofer='true') }}#modal-registro-chofer" class="btn btn-primary">
+        ➕ Nuevo Chofer
+    </a>
 </section>
 
 <hr>
@@ -41,10 +43,9 @@
         {% for c in choferes_existentes %}
         <tr>
             <td style="display:none;">{{ c.id_empleado }}</td>
-
             <td>{{ c.nombre }} {{ c.apellido }}</td>
             <td>{{ c.dni }}</td>
-            <td>{{ c.nro_licencia }} ({{ c.tipo_licencia }})</td>
+            <td>{{ c.nro_licencia }} ({{ c.categoria }})</td>
             <td>{{ c.años_experiencia }} años</td>
 
             <td style="text-align:right;">
@@ -70,7 +71,7 @@
     <h2>➕ Registrar Nuevo Chofer</h2>
     <form method="post" action="{{ url_for('registrar_personal') }}">
         <input type="hidden" name="tipo_registro" value="chofer">
-        
+
         <h3>Datos Personales</h3>
         <label>Nombre</label><input type="text" name="nombre" required>
         <label>Apellido</label><input type="text" name="apellido" required>
@@ -113,7 +114,7 @@
 
     <form method="post" action="{{ url_for('actualizar_personal') }}">
         <input type="hidden" name="id_empleado" value="{{ editar_personal.id_empleado }}">
-        
+
         <h3>Datos Personales</h3>
         <label>Nombre</label><input type="text" name="nombre" value="{{ editar_personal.nombre }}" required>
         <label>Apellido</label><input type="text" name="apellido" value="{{ editar_personal.apellido }}" required>

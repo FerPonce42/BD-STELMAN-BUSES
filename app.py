@@ -349,7 +349,7 @@ def panel_personal():
     cursor = mysql.connection.cursor()
     id_supervisor = session['id']
 
-    # ========== Ruta del supervisor ==========
+    # RUTA ACTIVA
     cursor.execute("""
         SELECT id_ruta
         FROM supervisor_ruta
@@ -365,7 +365,7 @@ def panel_personal():
 
     id_ruta = row['id_ruta']
 
-    # ========== Choferes visibles ==========
+    # LISTA DE CHOFERES
     cursor.execute("""
         (
             SELECT e.id_empleado, p.nombre, p.apellido, p.dni,
@@ -401,7 +401,7 @@ def panel_personal():
 
     editar_personal = None
 
-    # ====== Si el request pide editar ==========
+    # EDITAR
     if "editar" in request.args:
         cursor.execute("""
             SELECT e.id_empleado, p.nombre, p.apellido, p.dni, p.telefono,
@@ -415,11 +415,10 @@ def panel_personal():
         """, (request.args["editar"],))
         editar_personal = cursor.fetchone()
 
-    # ====== Si el request pide eliminar ==========
+    # ELIMINAR
     if "eliminar" in request.args:
         try:
             mysql.connection.begin()
-
             id_empleado = request.args["eliminar"]
 
             cursor.execute("DELETE FROM chofer WHERE id_empleado=%s", (id_empleado,))
@@ -444,52 +443,53 @@ def panel_personal():
                            editar_personal=editar_personal)
 
 
-@app.route("/actualizar_personal", methods=['POST'])
-def actualizar_personal():
+# ======================= REGISTRAR CHOFER =======================
 
+@app.route("/registrar_personal", methods=['POST'])
+def registrar_personal():
     cursor = mysql.connection.cursor()
-    id_empleado = request.form["id_empleado"]
 
     try:
         mysql.connection.begin()
 
         # persona
         cursor.execute("""
-            UPDATE persona p
-            JOIN empleado e ON e.id_persona=p.id_persona
-            SET p.nombre=%s, p.apellido=%s, p.dni=%s, p.telefono=%s
-            WHERE e.id_empleado=%s
+            INSERT INTO persona(nombre, apellido, dni, telefono)
+            VALUES (%s, %s, %s, %s)
         """, (
             request.form["nombre"],
             request.form["apellido"],
             request.form["dni"],
-            request.form["telefono"],
-            id_empleado
+            request.form["telefono"]
         ))
+        id_persona = cursor.lastrowid
 
         # empleado
         cursor.execute("""
-            UPDATE empleado
-            SET sueldo=%s
-            WHERE id_empleado=%s
-        """, (request.form["sueldo"], id_empleado))
+            INSERT INTO empleado(id_persona, sueldo, fecha_ingreso)
+            VALUES (%s, %s, %s)
+        """, (
+            id_persona,
+            request.form["sueldo"],
+            request.form["fecha_ingreso"]
+        ))
+        id_empleado = cursor.lastrowid
 
         # chofer
         cursor.execute("""
-            UPDATE chofer
-            SET nro_licencia=%s, años_experiencia=%s,
-                id_tipo_licencia=%s, historial_infracciones=%s
-            WHERE id_empleado=%s
+            INSERT INTO chofer(id_empleado, nro_licencia, años_experiencia,
+                               id_tipo_licencia, historial_infracciones)
+            VALUES (%s, %s, %s, %s, %s)
         """, (
+            id_empleado,
             request.form["nro_licencia"],
             request.form["anos_experiencia"],
             request.form["id_tipo_licencia"],
-            request.form["historial_infracciones"],
-            id_empleado
+            request.form["historial_infracciones"]
         ))
 
         mysql.connection.commit()
-        flash("✔ Datos actualizados.", "success")
+        flash("✔ Chofer registrado correctamente.", "success")
 
     except Exception as e:
         mysql.connection.rollback()
