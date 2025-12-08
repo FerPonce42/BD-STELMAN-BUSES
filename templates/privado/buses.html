@@ -1,42 +1,71 @@
 {% extends 'privado/base.html' %}
 
-{% block title %}Buses | Stelman{% endblock %}
+{% block title %}Gestión de Buses{% endblock %}
 
 {% block content %}
 
 <h1>Gestión de Buses</h1>
 
+<!-- MENSAJES FLASH -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+
 <!-- TABLA LISTADO -->
 <section>
-    <h2>Listado</h2>
-    <!-- aquí insertas tabla dinámica después -->
-    <table border="1" width="100%">
+    <h2>Listado de Buses</h2>
+
+    <table border="1" width="100%" cellpadding="6">
         <tr>
-            <th>Placa</th><th>Modelo</th><th>Marca</th><th>Acciones</th>
+            <th>Placa</th>
+            <th>Modelo</th>
+            <th>Marca</th>
+            <th>Año</th>
+            <th>Última revisión</th>
+            <th>Acciones</th>
         </tr>
-        <!-- loop con buses -->
+
+        {% for b in buses %}
         <tr>
-            <td>ABC-123</td><td>Urban X</td><td>Toyota</td>
+            <td>{{ b.placa }}</td>
+            <td>{{ b.modelo }}</td>
+            <td>{{ b.marca }}</td>
+            <td>{{ b.año }}</td>
+            <td>{{ b.revision }}</td>
             <td>
-                <button>Editar</button>
-                <button>Eliminar</button>
+                <a href="#" class="btn">Editar</a>
+                <a href="#" class="btn">Eliminar</a>
             </td>
         </tr>
+        {% else %}
+        <tr>
+            <td colspan="6" align="center">No hay buses registrados</td>
+        </tr>
+        {% endfor %}
     </table>
 </section>
 
+
 <!-- FORMULARIO ALTA -->
-<section>
-    <h2>Agregar / Editar Bus</h2>
+<section style="margin-top: 20px;">
+    <h2>Registrar Nuevo Bus</h2>
+
     <form method="post">
+
         <label>Placa</label>
-        <input type="text" name="placa">
+        <input type="text" name="placa" required>
 
         <label>Modelo</label>
-        <input type="text" name="modelo">
-
-        <label>Marca</label>
-        <input type="text" name="marca">
+        <select name="id_modelo_bus" required>
+            {% for m in modelos %}
+                <option value="{{ m.id }}">{{ m.nombre }}</option>
+            {% endfor %}
+        </select>
 
         <button type="submit">Guardar</button>
     </form>

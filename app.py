@@ -104,11 +104,53 @@ def panel():
 # MODULOS DEL SIDEBAR
 # =====================================================
 
-@app.route("/panel/buses")
+@app.route("/panel/buses", methods=["GET", "POST"])
 def panel_buses():
     if 'usuario' not in session:
         return redirect(url_for('login'))
-    return render_template("privado/buses.html")
+
+    cursor = mysql.connection.cursor()
+
+    ### INSERTAR BUS
+    if request.method == "POST":
+        placa = request.form.get("placa")
+        id_modelo_bus = request.form.get("id_modelo_bus")
+
+        cursor.execute("SELECT placa FROM bus WHERE placa=%s", (placa,))
+        existe = cursor.fetchone()
+
+        if existe:
+            flash("❌ Esa placa ya está registrada", "danger")
+        else:
+            cursor.execute("""
+                INSERT INTO bus (placa, año_fabricacion, id_modelo_bus, id_almacen)
+                VALUES (%s, YEAR(NOW()), %s, 1)
+            """, (placa, id_modelo_bus))
+            mysql.connection.commit()
+            flash("✔️ Bus registrado correctamente", "success")
+
+    ### CONSULTAR MODELOS PARA SELECT
+    cursor.execute("SELECT id_modelo_bus AS id, nombre FROM modelo_bus")
+    modelos = cursor.fetchall()
+
+    ### CONSULTAR buses reales
+    cursor.execute("""
+        SELECT 
+            b.placa,
+            m.nombre AS modelo,
+            ma.nombre AS marca,
+            b.año_fabricacion AS año,
+            b.ultima_revision AS revision
+        FROM bus b
+        JOIN modelo_bus m ON b.id_modelo_bus = m.id_modelo_bus
+        JOIN marca_bus ma ON m.id_marca_bus = ma.id_marca_bus
+    """)
+    buses = cursor.fetchall()
+
+    cursor.close()
+
+    return render_template("privado/buses.html", buses=buses, modelos=modelos)
+
 
 
 @app.route("/panel/personal")
