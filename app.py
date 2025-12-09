@@ -1326,6 +1326,7 @@ def eliminar_caja(id_caja):
 
 
 # ===================== EDITAR RECAUDACIÓN =====================
+# ===================== EDITAR RECAUDACIÓN =====================
 @app.route("/editar_caja/<int:id_caja>", methods=['GET'])
 def editar_caja(id_caja):
     if 'usuario' not in session:
@@ -1347,19 +1348,29 @@ def editar_caja(id_caja):
     cursor.execute("SELECT * FROM caja WHERE id_caja=%s", (id_caja,))
     editar_caja = cursor.fetchone()
 
-    # Cobradores de la ruta
+    # ✅ CORRECCIÓN APLICADA AQUÍ: Cobradores de la ruta (Asignados a bus de la ruta O sin ninguna asignación)
     cursor.execute("""
-        SELECT e.id_empleado, p.nombre, p.apellido
-        FROM persona p
-        JOIN empleado e ON e.id_persona = p.id_persona
-        JOIN cobrador co ON e.id_empleado = co.id_empleado
-        WHERE e.id_empleado IN (
-            SELECT ab.id_empleado
-            FROM asignacion_bus ab
-            JOIN bus_ruta br ON ab.id_bus = br.id_bus
-            WHERE br.id_ruta = %s
+        (
+            SELECT DISTINCT e.id_empleado, p.nombre, p.apellido
+            FROM persona p
+            JOIN empleado e ON e.id_persona = p.id_persona
+            JOIN cobrador co ON e.id_empleado = co.id_empleado 
+            WHERE e.id_empleado IN (
+                SELECT ab.id_empleado
+                FROM asignacion_bus ab
+                JOIN bus_ruta br ON ab.id_bus = br.id_bus
+                WHERE br.id_ruta = %s
+            )
         )
-    """, (id_ruta,))
+        UNION
+        (
+            SELECT e.id_empleado, p.nombre, p.apellido
+            FROM persona p
+            JOIN empleado e ON e.id_persona = p.id_persona
+            JOIN cobrador co ON e.id_empleado = co.id_empleado 
+            WHERE e.id_empleado NOT IN (SELECT id_empleado FROM asignacion_bus)
+        )
+    """, (id_ruta,)) # Solo se necesita pasar id_ruta una vez para el primer SELECT
     empleados = cursor.fetchall()
 
     # Buses de la ruta
@@ -1381,7 +1392,6 @@ def editar_caja(id_caja):
                            id_ruta=id_ruta,
                            editar_caja=editar_caja,
                            hoy=hoy)
-
 
 # ===================== ACTUALIZAR RECAUDACIÓN =====================
 @app.route("/actualizar_caja", methods=['POST'])
