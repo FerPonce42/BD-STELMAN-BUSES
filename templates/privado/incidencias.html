@@ -1,67 +1,112 @@
 {% extends 'privado/base.html' %}
 
+{% block title %}Incidencias | Stelman{% endblock %}
+
 {% block content %}
-<h1>⚠ Panel de Incidencias</h1>
 
-<h2>Incidencias Disciplinarias</h2>
-{% if incidencias_disciplinarias %}
-<table border="1" cellpadding="5" cellspacing="0">
-    <thead>
-        <tr>
-            <th>ID</th>
+<h1>📝 Gestión de Incidencias</h1>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<section style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
+    <a href="{{ url_for('panel_incidencias', nuevo_incidencia='true') }}#modal-nueva" class="btn btn-primary">
+        ➕ Nueva Incidencia
+    </a>
+</section>
+
+<hr>
+
+<section>
+    <h2>Listado de Incidencias (Ruta ID: {{ id_ruta | default('N/A') }})</h2>
+
+    {% if not id_ruta %}
+        <p style="color: orange; font-weight: bold;">🚫 No tienes rutas activas asignadas.</p>
+    {% endif %}
+
+    <table border="1" width="100%" cellpadding="6">
+        <tr style="background: #f0f0f0;">
             <th>Fecha</th>
             <th>Descripción</th>
             <th>Estado</th>
-            <th>Tipo Disciplinaria</th>
-            <th>Sanción</th>
+            <th>Acciones</th>
         </tr>
-    </thead>
-    <tbody>
-        {% for inc in incidencias_disciplinarias %}
+
+        {% for inc in incidencias %}
         <tr>
-            <td>{{ inc.id_incidencia }}</td>
             <td>{{ inc.fecha }}</td>
             <td>{{ inc.descripcion }}</td>
             <td>{{ inc.estado }}</td>
-            <td>{{ inc.tipo_disciplinaria }}</td>
-            <td>{{ inc.sancion }}</td>
+            <td style="text-align:right;">
+                <a href="{{ url_for('panel_incidencias', editar=inc.id_incidencia) }}#modal-editar" class="btn-sm">✏️ Editar</a>
+                <a href="{{ url_for('panel_incidencias', eliminar=inc.id_incidencia) }}" class="btn-sm btn-warning"
+                   onclick="return confirm('¿Seguro de eliminar esta incidencia?')">🗑️ Eliminar</a>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="4" style="text-align:center;">⚠ No hay incidencias disponibles.</td>
         </tr>
         {% endfor %}
-    </tbody>
-</table>
-{% else %}
-<p>No hay incidencias disciplinarias para tus rutas.</p>
+    </table>
+</section>
+
+<hr style="margin-top: 40px; border-color: #333;">
+
+{# ===================== NUEVA INCIDENCIA ===================== #}
+{% if 'nuevo_incidencia' in request.args %}
+<div id="modal-nueva" style="border:2px solid green;padding:20px;">
+    <h2>➕ Registrar Nueva Incidencia</h2>
+    <form method="post" action="{{ url_for('registrar_incidencia') }}">
+
+        <label>Fecha</label>
+        <input type="date" name="fecha" required>
+
+        <label>Descripción</label>
+        <textarea name="descripcion" required></textarea>
+
+        <label>Estado</label>
+        <select name="estado" required>
+            <option value="Abierta">Abierta</option>
+            <option value="Cerrada">Cerrada</option>
+        </select>
+
+        <br><br>
+        <button type="submit">Guardar</button>
+        <a href="{{ url_for('panel_incidencias') }}" class="btn-sm">Cancelar</a>
+    </form>
+</div>
 {% endif %}
 
-<h2>Incidencias Operativas</h2>
-{% if incidencias_operativas %}
-<table border="1" cellpadding="5" cellspacing="0">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Fecha</th>
-            <th>Descripción</th>
-            <th>Estado</th>
-            <th>Gravedad</th>
-            <th>Costo</th>
-            <th>Requiere Seguro</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for inc in incidencias_operativas %}
-        <tr>
-            <td>{{ inc.id_incidencia }}</td>
-            <td>{{ inc.fecha }}</td>
-            <td>{{ inc.descripcion }}</td>
-            <td>{{ inc.estado }}</td>
-            <td>{{ inc.gravedad }}</td>
-            <td>{{ inc.costo or 'N/A' }}</td>
-            <td>{{ 'Sí' if inc.requiere_seguro else 'No' }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-{% else %}
-<p>No hay incidencias operativas para tus rutas.</p>
+{# ===================== EDITAR INCIDENCIA ===================== #}
+{% if editar_incidencia %}
+<div id="modal-editar" style="border:2px solid orange;padding:20px;">
+    <h2>✏️ Editar Incidencia</h2>
+    <form method="post" action="{{ url_for('actualizar_incidencia') }}">
+        <input type="hidden" name="id_incidencia" value="{{ editar_incidencia.id_incidencia }}">
+
+        <label>Fecha</label>
+        <input type="date" name="fecha" value="{{ editar_incidencia.fecha }}" required>
+
+        <label>Descripción</label>
+        <textarea name="descripcion" required>{{ editar_incidencia.descripcion }}</textarea>
+
+        <label>Estado</label>
+        <select name="estado" required>
+            <option value="Abierta" {% if editar_incidencia.estado=='Abierta' %} selected {% endif %}>Abierta</option>
+            <option value="Cerrada" {% if editar_incidencia.estado=='Cerrada' %} selected {% endif %}>Cerrada</option>
+        </select>
+
+        <br><br>
+        <button type="submit">Actualizar</button>
+        <a href="{{ url_for('panel_incidencias') }}" class="btn-sm">Cancelar</a>
+    </form>
+</div>
 {% endif %}
+
 {% endblock %}
