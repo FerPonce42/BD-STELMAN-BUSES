@@ -506,6 +506,62 @@ def registrar_personal_chofer():
     cursor.close()
     return redirect(url_for("panel_personal_choferes"))
 
+
+@app.route("/actualizar_personal_chofer", methods=['POST'])
+def actualizar_personal_chofer():
+    cursor = mysql.connection.cursor()
+    try:
+        mysql.connection.begin()
+        id_empleado = request.form["id_empleado"]
+
+        # actualizar persona
+        cursor.execute("""
+            UPDATE persona p
+            JOIN empleado e ON p.id_persona=e.id_persona
+            SET p.nombre=%s, p.apellido=%s, p.dni=%s, p.telefono=%s
+            WHERE e.id_empleado=%s
+        """, (
+            request.form["nombre"],
+            request.form["apellido"],
+            request.form["dni"],
+            request.form["telefono"],
+            id_empleado
+        ))
+
+        # actualizar sueldo
+        cursor.execute("""
+            UPDATE empleado
+            SET sueldo=%s
+            WHERE id_empleado=%s
+        """, (request.form["sueldo"], id_empleado))
+
+        # actualizar chofer
+        cursor.execute("""
+            UPDATE chofer
+            SET nro_licencia=%s,
+                años_experiencia=%s,
+                id_tipo_licencia=%s,
+                historial_infracciones=%s
+            WHERE id_empleado=%s
+        """, (
+            request.form["nro_licencia"],
+            request.form["anos_experiencia"],
+            request.form["id_tipo_licencia"],
+            request.form["historial_infracciones"],
+            id_empleado
+        ))
+
+        mysql.connection.commit()
+        flash("✔ Datos del chofer actualizados.", "success")
+    except Exception as e:
+        mysql.connection.rollback()
+        flash(f"❌ Error: {str(e)}", "danger")
+    finally:
+        cursor.close()
+
+    return redirect(url_for("panel_personal_choferes"))
+
+
 ## COBRADORES
 
 @app.route("/panel/personal/cobradores", methods=['GET'])
