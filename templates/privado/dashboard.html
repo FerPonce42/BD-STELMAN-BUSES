@@ -4,18 +4,80 @@
 
 {% block content %}
 
-<h1>Bienvenido {{ nombre_supervisor }}</h1>
+<h1 class="mb-3">👋 Bienvenido, {{ nombre_supervisor }}</h1>
+<p class="lead text-muted">Tipo: *{{ tipo_supervisor }}*</p>
 
-<p>Tipo: {{ tipo_supervisor }}</p>
+<div class="alert {{ 'alert-info' if kpi_buses > 0 else 'alert-warning' }}" role="alert">
+    <strong>{{ mensaje_ruta }}</strong>
+</div>
+
+<hr>
 
 <section>
-    <h2>Indicadores</h2>
+    <h2>📊 Indicadores Clave de Operación</h2>
+    <p>Datos actualizados en tiempo real o al inicio de sesión.</p>
 
-    <ul>
-        <li>Buses operativos: {{ kpi_buses }}</li>
-        <li>Incidencias abiertas: {{ kpi_incidencias }}</li>
-        <li>Recaudación hoy: {{ kpi_recaudacion }}</li>
-    </ul>
-</section>
+    <div class="row">
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                🚍 Buses Asignados
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ kpi_buses }} Unidades
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-bus fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                💰 Recaudación Total Hoy
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ kpi_recaudacion }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                🚨 Incidencias Abiertas (Sistema)
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ kpi_incidencias }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </section>
 
 {% endblock %}

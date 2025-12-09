@@ -83,25 +83,91 @@ def login():
 
 
 
-
-
-
 #=====================================================
 # PANEL PRIVADO - DASHBOARD 
 #=====================================================
+
 @app.route('/panel')
 def panel():
     if 'usuario' not in session:
         return redirect(url_for('login'))
 
+    id_supervisor = session['id']
+    
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    
+    
+    cursor.execute("""
+        SELECT id_ruta 
+        FROM supervisor_ruta
+        WHERE id_empleado = %s AND fecha_fin IS NULL
+    """, (id_supervisor,))
+    ruta_data = cursor.fetchone()
+    id_ruta = ruta_data['id_ruta'] if ruta_data else None
+
+    
+    kpi_buses = 0
+    kpi_incidencias = 0
+    kpi_recaudacion = "S/. 0.00"
+    mensaje_ruta = ""
+    nombre_ruta = "N/A"
+
+    if id_ruta:
+        
+        cursor.execute("""
+            SELECT COUNT(b.id_bus) AS total_buses
+            FROM bus b
+            JOIN bus_ruta br ON b.id_bus = br.id_bus
+            WHERE br.id_ruta = %s AND br.fecha_desasignacion IS NULL
+        """, (id_ruta,))
+        kpi_buses = cursor.fetchone()['total_buses']
+         
+        cursor.execute("""
+            SELECT SUM(monto_recaudado) AS recaudacion
+            FROM caja
+            WHERE id_ruta = %s 
+              AND DATE(fecha) = CURDATE()
+        """, (id_ruta,))
+        
+        recaudacion_hoy = cursor.fetchone()['recaudacion']
+        
+        if recaudacion_hoy is not None:
+             kpi_recaudacion = f"S/. {recaudacion_hoy:,.2f}" 
+        
+    
+        cursor.execute("SELECT letra FROM ruta WHERE id_ruta = %s", (id_ruta,))
+        
+        ruta_info = cursor.fetchone()
+        
+       
+        nombre_ruta = ruta_info['letra'] if ruta_info and 'letra' in ruta_info else 'Ruta Desconocida'
+        
+        mensaje_ruta = f"✅ Administrando la Ruta: {nombre_ruta} (ID: {id_ruta})"
+        
+    else:
+        mensaje_ruta = "🚫 No tienes una ruta activa asignada. Los KPIs de Ruta se muestran en 0."
+
+
+    cursor.execute("""
+        SELECT COUNT(id_incidencia) AS total_incidencias
+        FROM incidencia
+        WHERE estado = 'ABIERTA' OR estado = 'PENDIENTE'
+    """)
+    kpi_incidencias = cursor.fetchone()['total_incidencias']
+        
+    cursor.close()
+
     return render_template(
         'privado/dashboard.html',
         nombre_supervisor=session['usuario'],
         tipo_supervisor=session['rol'],
-        kpi_buses=5,
-        kpi_incidencias=1,
-        kpi_recaudacion="S/. 1500"
+        kpi_buses=kpi_buses,
+        kpi_incidencias=kpi_incidencias,
+        kpi_recaudacion=kpi_recaudacion,
+        mensaje_ruta=mensaje_ruta
     )
+
+
 
 #=====================================================
 # MODULOS DE BUSES
@@ -1512,16 +1578,9 @@ def actualizar_caja():
     return redirect(url_for("panel_caja"))
 
 
-
-
-
-
-
-@app.route("/panel/rutas")
-def panel_rutas():
-    if 'usuario' not in session:
-        return redirect(url_for('login'))
-    return render_template("privado/rutas.html")
+#=====================================================
+# REPORTE EXTRAIBLE EXCEL
+#=====================================================
 
 @app.route("/panel/reportes")
 def panel_reportes():
