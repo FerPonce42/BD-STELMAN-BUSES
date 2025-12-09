@@ -1,0 +1,135 @@
+{% extends 'privado/base.html' %}
+
+{% block title %}Gestión de Cobradores{% endblock %}
+
+{% block content %}
+
+<h1>👥 Gestión de Cobradores</h1>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<section style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
+    <a href="{{ url_for('panel_personal_cobradores', nuevo_cobrador='true') }}#modal-registro-cobrador" class="btn btn-primary">
+        ➕ Nuevo Cobrador
+    </a>
+</section>
+
+<hr>
+
+<section>
+    <h2>Cobradores Gestionables (Ruta ID: {{ id_ruta | default('N/A') }})</h2>
+    
+    {% if id_ruta %}
+    <p style="color: green; font-weight: bold;">✔ Se muestran los cobradores que pertenecen a tu ruta.</p>
+    {% else %}
+    <p style="color: orange; font-weight: bold;">🚫 No tienes una ruta activa asignada.</p>
+    {% endif %}
+
+    <table border="1" width="100%" cellpadding="6">
+        <tr style="background: #f0f0f0;">
+            <th>Nombre Completo</th>
+            <th>DNI</th>
+            <th>Teléfono</th>
+            <th>Sueldo</th>
+            <th>Idiomas</th>
+            <th style="text-align: right;">Acciones</th>
+        </tr>
+
+        {% for c in cobradores_existentes %}
+        <tr>
+            <td>{{ c.nombre }} {{ c.apellido }}</td>
+            <td>{{ c.dni }}</td>
+            <td>{{ c.telefono }}</td>
+            <td>S/. {{ c.sueldo }}</td>
+            <td>{{ c.idiomas if c.idiomas else '-' }}</td>
+            <td style="text-align:right;">
+                <a href="{{ url_for('panel_personal_cobradores', editar=c.id_empleado) }}#modal-editar" class="btn-sm">✏️ Editar</a>
+                <a href="{{ url_for('panel_personal_cobradores', eliminar=c.id_empleado) }}" class="btn-sm btn-warning"
+                   onclick="return confirm('¿Seguro de eliminar este cobrador?')">🗑️ Eliminar</a>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="6" style="text-align:center;">⚠ No hay cobradores disponibles.</td>
+        </tr>
+        {% endfor %}
+    </table>
+</section>
+
+<hr style="margin-top: 40px; border-color: #333;">
+
+{# ===================== NUEVO COBRADOR ===================== #}
+{% if 'nuevo_cobrador' in request.args %}
+<div id="modal-registro-cobrador" style="border:2px solid green;padding:20px;">
+    <h2>➕ Registrar Nuevo Cobrador</h2>
+    <form method="post" action="{{ url_for('registrar_personal_cobrador') }}">
+
+        <h3>Datos Personales</h3>
+        <label>Nombre</label><input type="text" name="nombre" required>
+        <label>Apellido</label><input type="text" name="apellido" required>
+        <label>DNI</label><input type="text" name="dni" required>
+        <label>Teléfono (Opcional)</label><input type="text" name="telefono">
+
+        <hr>
+        <h3>Datos Laborales</h3>
+        <label>Sueldo Base</label><input type="number" name="sueldo" step="0.01" min="0" required>
+        <label>Fecha de Ingreso</label><input type="date" name="fecha_ingreso" required>
+
+        <hr>
+        <h3>Idiomas</h3>
+        <select name="idiomas" multiple size="4" required>
+            {% for idioma in lista_idiomas %}
+                <option value="{{ idioma.id_idioma }}">{{ idioma.nombre }}</option>
+            {% endfor %}
+        </select>
+        <small>(Mantén CTRL presionado para seleccionar varios)</small>
+
+        <br><br>
+        <button type="submit">Guardar</button>
+        <a href="{{ url_for('panel_personal_cobradores') }}" class="btn-sm">Cancelar</a>
+    </form>
+</div>
+{% endif %}
+
+{# ===================== EDITAR COBRADOR ===================== #}
+{% if editar_personal %}
+<div id="modal-editar" style="border:2px solid orange;padding:20px;">
+    <h2>✏️ Editar Cobrador</h2>
+
+    <form method="post" action="{{ url_for('actualizar_personal_cobrador') }}">
+        <input type="hidden" name="id_empleado" value="{{ editar_personal.id_empleado }}">
+
+        <label>Nombre</label><input type="text" name="nombre" value="{{ editar_personal.nombre }}" required>
+        <label>Apellido</label><input type="text" name="apellido" value="{{ editar_personal.apellido }}" required>
+        <label>DNI</label><input type="text" name="dni" value="{{ editar_personal.dni }}" required>
+        <label>Teléfono</label><input type="text" name="telefono" value="{{ editar_personal.telefono }}">
+
+        <hr>
+        <label>Sueldo Base</label><input type="number" name="sueldo" step="0.01" min="0" value="{{ editar_personal.sueldo }}" required>
+
+        <hr>
+        <h3>Idiomas del Cobrador</h3>
+        <select name="idiomas" multiple size="4">
+            {% for idioma in lista_idiomas %}
+                <option value="{{ idioma.id_idioma }}"
+                    {% if idioma.id_idioma in idiomas_asociados %} selected {% endif %}>
+                    {{ idioma.nombre }}
+                </option>
+            {% endfor %}
+        </select>
+        <small>(Mantén CTRL presionado para seleccionar varios)</small>
+
+        <br><br>
+        <button type="submit">Actualizar</button>
+        <a href="{{ url_for('panel_personal_cobradores') }}" class="btn-sm">Cancelar</a>
+    </form>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -506,15 +506,233 @@ def registrar_personal_chofer():
     cursor.close()
     return redirect(url_for("panel_personal_choferes"))
 
-
+## COBRADORES
 
 @app.route("/panel/personal/cobradores", methods=['GET'])
 def panel_personal_cobradores():
     if 'usuario' not in session:
         return redirect(url_for('login'))
 
-    return render_template("privado/personal_cobradores.html")
+    cursor = mysql.connection.cursor()
+    id_supervisor = session['id']
 
+    # detectar ruta activa
+    cursor.execute("""
+        SELECT id_ruta
+        FROM supervisor_ruta
+        WHERE id_empleado=%s AND fecha_fin IS NULL
+    """, (id_supervisor,))
+    row = cursor.fetchone()
+
+    if not row:
+        cursor.close()
+        return render_template("privado/personal_cobradores.html",
+                               cobradores_existentes=[], id_ruta=None,
+                               editar_personal=None,
+                               lista_idiomas=[],
+                               idiomas_asociados=[])
+
+    id_ruta = row['id_ruta']
+
+    # obtener cobradores vinculados a la ruta o libres sin asignación
+    cursor.execute("""
+        (
+            SELECT e.id_empleado, p.nombre, p.apellido, p.dni, p.telefono, e.sueldo
+            FROM empleado e
+            JOIN persona p ON e.id_persona=p.id_persona
+            JOIN cobrador c ON c.id_empleado=e.id_empleado
+            WHERE e.id_empleado IN (
+                SELECT DISTINCT ab.id_empleado
+                FROM asignacion_bus ab
+                JOIN bus b ON ab.id_bus=b.id_bus
+                JOIN bus_ruta br ON b.id_bus=br.id_bus
+                WHERE br.id_ruta=%s
+            )
+        )
+        UNION
+        (
+            SELECT e.id_empleado, p.nombre, p.apellido, p.dni, p.telefono, e.sueldo
+            FROM empleado e
+            JOIN persona p ON e.id_persona=p.id_persona
+            JOIN cobrador c ON c.id_empleado=e.id_empleado
+            WHERE e.id_empleado NOT IN (SELECT id_empleado FROM asignacion_bus)
+        )
+    """, (id_ruta,))
+    
+    cobradores = cursor.fetchall()
+
+    # obtener idiomas disponibles
+    cursor.execute("SELECT id_idioma, nombre FROM idioma")
+    lista_idiomas = cursor.fetchall()
+
+    editar_personal = None
+    idiomas_asociados = []
+
+    # editar
+    if "editar" in request.args:
+        cursor.execute("""
+            SELECT e.id_empleado, p.nombre, p.apellido, p.dni, p.telefono,
+                   e.sueldo
+            FROM empleado e
+            JOIN persona p ON e.id_persona=p.id_persona
+            JOIN cobrador c ON c.id_empleado=e.id_empleado
+            WHERE e.id_empleado=%s
+        """, (request.args["editar"],))
+        editar_personal = cursor.fetchone()
+
+        cursor.execute("""
+            SELECT id_idioma
+            FROM cobrador_idioma
+            WHERE id_empleado=%s
+        """, (editar_personal["id_empleado"],))
+        idiomas_asociados = [row["id_idioma"] for row in cursor.fetchall()]
+
+    # eliminar
+    if "eliminar" in request.args:
+        try:
+            mysql.connection.begin()
+            id_empleado = request.args["eliminar"]
+
+            cursor.execute("DELETE FROM cobrador_idioma WHERE id_empleado=%s", (id_empleado,))
+            cursor.execute("DELETE FROM cobrador WHERE id_empleado=%s", (id_empleado,))
+            cursor.execute("DELETE FROM empleado WHERE id_empleado=%s", (id_empleado,))
+
+            mysql.connection.commit()
+            flash("✔ Registro eliminado.", "success")
+
+        except Exception as e:
+            mysql.connection.rollback()
+            flash(f"❌ Error: {str(e)}", "danger")
+
+        cursor.close()
+        return redirect(url_for("panel_personal_cobradores"))
+
+    cursor.close()
+
+    # agregar idiomas a cada cobrador para mostrar
+    for c in cobradores:
+        cursor2 = mysql.connection.cursor()
+        cursor2.execute("""
+            SELECT i.nombre
+            FROM cobrador_idioma ci
+            JOIN idioma i ON ci.id_idioma=i.id_idioma
+            WHERE ci.id_empleado=%s
+        """, (c["id_empleado"],))
+        idiomas = [row["nombre"] for row in cursor2.fetchall()]
+        c["idiomas"] = ", ".join(idiomas)
+        cursor2.close()
+
+    return render_template("privado/personal_cobradores.html",
+                           cobradores_existentes=cobradores,
+                           id_ruta=id_ruta,
+                           editar_personal=editar_personal,
+                           lista_idiomas=lista_idiomas,
+                           idiomas_asociados=idiomas_asociados)
+
+
+@app.route("/registrar_personal_cobrador", methods=['POST'])
+def registrar_personal_cobrador():
+    cursor = mysql.connection.cursor()
+
+    try:
+        mysql.connection.begin()
+
+        # persona
+        cursor.execute("""
+            INSERT INTO persona(nombre, apellido, dni, telefono)
+            VALUES (%s, %s, %s, %s)
+        """, (
+            request.form["nombre"],
+            request.form["apellido"],
+            request.form["dni"],
+            request.form["telefono"]
+        ))
+        id_persona = cursor.lastrowid
+
+        # empleado
+        cursor.execute("""
+            INSERT INTO empleado(id_persona, sueldo, fecha_ingreso, tipo_empleado)
+            VALUES (%s, %s, %s, 'COBRADOR')
+        """, (
+            id_persona,
+            request.form["sueldo"],
+            request.form["fecha_ingreso"]
+        ))
+        id_empleado = cursor.lastrowid
+
+        # cobrador
+        cursor.execute("""
+            INSERT INTO cobrador(id_empleado)
+            VALUES (%s)
+        """, (id_empleado,))
+
+        # registrar idiomas seleccionados
+        idiomas = request.form.getlist("idiomas")
+        for id_idioma in idiomas:
+            cursor.execute("""
+                INSERT INTO cobrador_idioma(id_empleado, id_idioma)
+                VALUES (%s, %s)
+            """, (id_empleado, id_idioma))
+
+        mysql.connection.commit()
+        flash("✔ Cobrador registrado correctamente.", "success")
+
+    except Exception as e:
+        mysql.connection.rollback()
+        flash(f"❌ Error: {str(e)}", "danger")
+
+    cursor.close()
+    return redirect(url_for("panel_personal_cobradores"))
+
+
+@app.route("/actualizar_personal_cobrador", methods=['POST'])
+def actualizar_personal_cobrador():
+    cursor = mysql.connection.cursor()
+
+    try:
+        mysql.connection.begin()
+
+        id_empleado = request.form["id_empleado"]
+
+        # actualizar persona
+        cursor.execute("""
+            UPDATE persona p
+            JOIN empleado e ON p.id_persona=e.id_persona
+            SET p.nombre=%s, p.apellido=%s, p.dni=%s, p.telefono=%s
+            WHERE e.id_empleado=%s
+        """, (
+            request.form["nombre"],
+            request.form["apellido"],
+            request.form["dni"],
+            request.form["telefono"],
+            id_empleado
+        ))
+
+        # actualizar empleado sueldo
+        cursor.execute("""
+            UPDATE empleado
+            SET sueldo=%s
+            WHERE id_empleado=%s
+        """, (request.form["sueldo"], id_empleado))
+
+        # actualizar idiomas
+        cursor.execute("DELETE FROM cobrador_idioma WHERE id_empleado=%s", (id_empleado,))
+        idiomas = request.form.getlist("idiomas")
+        for id_idioma in idiomas:
+            cursor.execute("""
+                INSERT INTO cobrador_idioma(id_empleado, id_idioma)
+                VALUES (%s, %s)
+            """, (id_empleado, id_idioma))
+
+        mysql.connection.commit()
+        flash("✔ Datos de cobrador actualizados.", "success")
+
+    except Exception as e:
+        mysql.connection.rollback()
+        flash(f"❌ Error: {str(e)}", "danger")
+
+    cursor.close()
+    return redirect(url_for("panel_personal_cobradores"))
 
 
 
