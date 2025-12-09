@@ -735,19 +735,27 @@ def actualizar_personal_cobrador():
     return redirect(url_for("panel_personal_cobradores"))
 
 
-#####
-# =====================================================
-# PANEL INCIDENCIAS
-# =====================================================
-@app.route("/panel/incidencias")
+# =============================================
+# PANEL GENERAL DE INCIDENCIAS
+# =============================================
+@app.route("/panel/incidencias", methods=['GET'])
 def panel_incidencias():
+    if 'usuario' not in session:
+        return redirect(url_for('login'))
+    return render_template("privado/incidencias.html")
+
+# =============================================
+# INCIDENCIAS DISCIPLINARIAS
+# =============================================
+@app.route("/panel/incidencias/disciplinarias", methods=['GET'])
+def panel_incidencias_disciplinarias():
     if 'usuario' not in session:
         return redirect(url_for('login'))
 
     cursor = mysql.connection.cursor()
     id_supervisor = session['id']
 
-    # Obtener ruta activa del supervisor
+    # Detectar ruta activa del supervisor
     cursor.execute("""
         SELECT id_ruta
         FROM supervisor_ruta
@@ -756,82 +764,39 @@ def panel_incidencias():
     row = cursor.fetchone()
     id_ruta = row['id_ruta'] if row else None
 
-    incidencias = []
-    editar_incidencia = None
-
+    # Obtener incidencias disciplinarias
     if id_ruta:
-        # Traer solo incidencias asociadas a buses de la ruta del supervisor
         cursor.execute("""
-            SELECT i.*
+            SELECT i.id_incidencia, i.fecha, i.descripcion, i.estado,
+                   id.tipo_disciplinaria, id.sancion
             FROM incidencia i
-            JOIN bus_ruta br ON br.id_ruta = %s
-            JOIN bus b ON b.id_bus = br.id_bus
-            JOIN mantenimiento m ON m.id_bus = b.id_bus
-            WHERE i.id_incidencia = m.id_mantenimiento
-        """, (id_ruta,))
-        incidencias = cursor.fetchall()
-
-    # Editar incidencia
-    if "editar" in request.args:
-        id_incidencia = request.args["editar"]
-        cursor.execute("SELECT * FROM incidencia WHERE id_incidencia=%s", (id_incidencia,))
-        editar_incidencia = cursor.fetchone()
-        # Verificar que pertenece a la ruta del supervisor
-        if id_ruta:
-            cursor.execute("""
-                SELECT 1
-                FROM bus_ruta br
-                JOIN bus b ON br.id_ruta=%s AND br.id_bus=b.id_bus
-                JOIN mantenimiento m ON m.id_bus=b.id_bus AND m.id_mantenimiento=%s
-            """, (id_ruta, id_incidencia))
-            if not cursor.fetchone():
-                flash("❌ No tienes permiso para editar esta incidencia.", "danger")
-                editar_incidencia = None
-        else:
-            flash("❌ No tienes rutas activas.", "danger")
-            editar_incidencia = None
-
-    # Eliminar incidencia
-    if "eliminar" in request.args:
-        id_incidencia = request.args["eliminar"]
-        try:
-            mysql.connection.begin()
-            # Verificar permisos
-            permitido = False
-            if id_ruta:
-                cursor.execute("""
-                    SELECT 1
-                    FROM bus_ruta br
-                    JOIN bus b ON br.id_ruta=%s AND br.id_bus=b.id_bus
-                    JOIN mantenimiento m ON m.id_bus=b.id_bus AND m.id_mantenimiento=%s
-                """, (id_ruta, id_incidencia))
-                permitido = bool(cursor.fetchone())
-            if not permitido:
-                flash("❌ No tienes permiso para eliminar esta incidencia.", "danger")
-            else:
-                cursor.execute("DELETE FROM incidencia WHERE id_incidencia=%s", (id_incidencia,))
-                mysql.connection.commit()
-                flash("✔ Incidencia eliminada.", "success")
-        except Exception as e:
-            mysql.connection.rollback()
-            flash(f"❌ Error: {str(e)}", "danger")
-        return redirect(url_for("panel_incidencias"))
-
+            JOIN incidencia_disciplinaria id ON i.id_incidencia=id.id_incidencia
+            -- Se pueden filtrar por empleados asignados a la ruta si aplica
+            ORDER BY i.fecha DESC
+        """)
+    else:
+        # Si no tiene ruta, mostrar todas o ninguna según política
+        cursor.execute("""
+            SELECT i.id_incidencia, i.fecha, i.descripcion, i.estado,
+                   id.tipo_disciplinaria, id.sancion
+            FROM incidencia i
+            JOIN incidencia_disciplinaria id ON i.id_incidencia=id.id_incidencia
+            ORDER BY i.fecha DESC
+        """)
+    incidencias = cursor.fetchall()
     cursor.close()
-    return render_template("privado/incidencias.html",
+
+    return render_template("privado/incidencias_disciplinarias.html",
                            incidencias=incidencias,
-                           id_ruta=id_ruta,
-                           editar_incidencia=editar_incidencia)
+                           id_ruta=id_ruta)
 
-
-@app.route("/registrar_incidencia", methods=['POST'])
-def registrar_incidencia():
-    if 'usuario' not in session:
-        return redirect(url_for('login'))
-
+# Crear nueva incidencia disciplinaria
+@app.route("/registrar_incidencia_disciplinaria", methods=['POST'])
+def registrar_incidencia_disciplinaria():
     cursor = mysql.connection.cursor()
     try:
         mysql.connection.begin()
+
         cursor.execute("""
             INSERT INTO incidencia(fecha, descripcion, estado)
             VALUES (%s, %s, %s)
@@ -840,57 +805,137 @@ def registrar_incidencia():
             request.form["descripcion"],
             request.form["estado"]
         ))
+        id_incidencia = cursor.lastrowid
+
+        cursor.execute("""
+            INSERT INTO incidencia_disciplinaria(id_incidencia, tipo_disciplinaria, sancion)
+            VALUES (%s, %s, %s)
+        """, (
+            id_incidencia,
+            request.form["tipo_disciplinaria"],
+            request.form["sancion"]
+        ))
+
         mysql.connection.commit()
-        flash("✔ Incidencia registrada.", "success")
+        flash("✔ Incidencia disciplinaria registrada.", "success")
     except Exception as e:
         mysql.connection.rollback()
         flash(f"❌ Error: {str(e)}", "danger")
     cursor.close()
-    return redirect(url_for("panel_incidencias"))
+    return redirect(url_for("panel_incidencias_disciplinarias"))
 
+# Eliminar incidencia disciplinaria
+@app.route("/eliminar_incidencia_disciplinaria/<int:id_incidencia>", methods=['GET'])
+def eliminar_incidencia_disciplinaria(id_incidencia):
+    cursor = mysql.connection.cursor()
+    try:
+        mysql.connection.begin()
+        cursor.execute("DELETE FROM incidencia_disciplinaria WHERE id_incidencia=%s", (id_incidencia,))
+        cursor.execute("DELETE FROM incidencia WHERE id_incidencia=%s", (id_incidencia,))
+        mysql.connection.commit()
+        flash("✔ Incidencia disciplinaria eliminada.", "success")
+    except Exception as e:
+        mysql.connection.rollback()
+        flash(f"❌ Error: {str(e)}", "danger")
+    cursor.close()
+    return redirect(url_for("panel_incidencias_disciplinarias"))
 
-@app.route("/actualizar_incidencia", methods=['POST'])
-def actualizar_incidencia():
+# =============================================
+# INCIDENCIAS OPERATIVAS
+# =============================================
+@app.route("/panel/incidencias/operativas", methods=['GET'])
+def panel_incidencias_operativas():
     if 'usuario' not in session:
         return redirect(url_for('login'))
 
     cursor = mysql.connection.cursor()
-    id_incidencia = request.form["id_incidencia"]
     id_supervisor = session['id']
 
-    # Validar que la incidencia pertenece a una ruta del supervisor
+    # Detectar ruta activa del supervisor
     cursor.execute("""
-        SELECT br.id_ruta
-        FROM bus_ruta br
-        JOIN bus b ON br.id_bus=b.id_bus
-        JOIN mantenimiento m ON m.id_bus=b.id_bus
-        WHERE m.id_mantenimiento=%s AND br.fecha_desasignacion IS NULL
-    """, (id_incidencia,))
+        SELECT id_ruta
+        FROM supervisor_ruta
+        WHERE id_empleado=%s AND fecha_fin IS NULL
+    """, (id_supervisor,))
     row = cursor.fetchone()
-    if not row:
-        flash("❌ No tienes permiso para actualizar esta incidencia.", "danger")
-        cursor.close()
-        return redirect(url_for("panel_incidencias"))
+    id_ruta = row['id_ruta'] if row else None
 
+    # Obtener incidencias operativas
+    if id_ruta:
+        cursor.execute("""
+            SELECT i.id_incidencia, i.fecha, i.descripcion, i.estado,
+                   io.gravedad, io.costo, io.requiere_seguro
+            FROM incidencia i
+            JOIN incidencia_operativa io ON i.id_incidencia=io.id_incidencia
+            -- Se pueden filtrar por buses asignados a la ruta si aplica
+            ORDER BY i.fecha DESC
+        """)
+    else:
+        cursor.execute("""
+            SELECT i.id_incidencia, i.fecha, i.descripcion, i.estado,
+                   io.gravedad, io.costo, io.requiere_seguro
+            FROM incidencia i
+            JOIN incidencia_operativa io ON i.id_incidencia=io.id_incidencia
+            ORDER BY i.fecha DESC
+        """)
+    incidencias = cursor.fetchall()
+    cursor.close()
+
+    return render_template("privado/incidencias_operativas.html",
+                           incidencias=incidencias,
+                           id_ruta=id_ruta)
+
+# Crear nueva incidencia operativa
+@app.route("/registrar_incidencia_operativa", methods=['POST'])
+def registrar_incidencia_operativa():
+    cursor = mysql.connection.cursor()
     try:
         mysql.connection.begin()
+
         cursor.execute("""
-            UPDATE incidencia
-            SET fecha=%s, descripcion=%s, estado=%s
-            WHERE id_incidencia=%s
+            INSERT INTO incidencia(fecha, descripcion, estado)
+            VALUES (%s, %s, %s)
         """, (
             request.form["fecha"],
             request.form["descripcion"],
-            request.form["estado"],
-            id_incidencia
+            request.form["estado"]
         ))
+        id_incidencia = cursor.lastrowid
+
+        cursor.execute("""
+            INSERT INTO incidencia_operativa(id_incidencia, gravedad, costo, requiere_seguro)
+            VALUES (%s, %s, %s, %s)
+        """, (
+            id_incidencia,
+            request.form["gravedad"],
+            request.form["costo"],
+            1 if request.form.get("requiere_seguro") else 0
+        ))
+
         mysql.connection.commit()
-        flash("✔ Incidencia actualizada.", "success")
+        flash("✔ Incidencia operativa registrada.", "success")
     except Exception as e:
         mysql.connection.rollback()
         flash(f"❌ Error: {str(e)}", "danger")
     cursor.close()
-    return redirect(url_for("panel_incidencias"))
+    return redirect(url_for("panel_incidencias_operativas"))
+
+# Eliminar incidencia operativa
+@app.route("/eliminar_incidencia_operativa/<int:id_incidencia>", methods=['GET'])
+def eliminar_incidencia_operativa(id_incidencia):
+    cursor = mysql.connection.cursor()
+    try:
+        mysql.connection.begin()
+        cursor.execute("DELETE FROM incidencia_operativa WHERE id_incidencia=%s", (id_incidencia,))
+        cursor.execute("DELETE FROM incidencia WHERE id_incidencia=%s", (id_incidencia,))
+        mysql.connection.commit()
+        flash("✔ Incidencia operativa eliminada.", "success")
+    except Exception as e:
+        mysql.connection.rollback()
+        flash(f"❌ Error: {str(e)}", "danger")
+    cursor.close()
+    return redirect(url_for("panel_incidencias_operativas"))
+
 
 
 

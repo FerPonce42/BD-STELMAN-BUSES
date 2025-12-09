@@ -1,0 +1,59 @@
+{% extends 'privado/base.html' %}
+
+{% block title %}Incidencias Disciplinarias{% endblock %}
+
+{% block content %}
+
+<h1>⚖️ Incidencias Disciplinarias</h1>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<section style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
+    <a href="{{ url_for('panel_incidencias_disciplinarias', nuevo_incidencia='true') }}#modal-nueva" class="btn btn-primary">
+        ➕ Nueva Incidencia Disciplinaria
+    </a>
+</section>
+
+<hr>
+
+<section>
+    <table border="1" width="100%" cellpadding="6">
+        <tr style="background: #f0f0f0;">
+            <th>Fecha</th>
+            <th>Descripción</th>
+            <th>Tipo</th>
+            <th>Sanción</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+
+        {% for inc in incidencias %}
+        <tr>
+            <td>{{ inc.fecha }}</td>
+            <td>{{ inc.descripcion }}</td>
+            <td>{{ inc.tipo_disciplinaria }}</td>
+            <td>{{ inc.sancion }}</td>
+            <td>{{ inc.estado }}</td>
+            <td style="text-align:right;">
+                <a href="{{ url_for('panel_incidencias_disciplinarias', editar=inc.id_incidencia) }}#modal-editar" class="btn-sm">✏️ Editar</a>
+                <a href="{{ url_for('eliminar_incidencia_disciplinaria', id_incidencia=inc.id_incidencia) }}" class="btn-sm btn-warning"
+                   onclick="return confirm('¿Seguro de eliminar esta incidencia disciplinaria?')">🗑️ Eliminar</a>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="6" style="text-align:center;">⚠ No hay incidencias disciplinarias.</td>
+        </tr>
+        {% endfor %}
+    </table>
+</section>
+
+{# Modal para crear/editar disciplinaria similar al ejemplo de cobradores #}
+
+{% endblock %}

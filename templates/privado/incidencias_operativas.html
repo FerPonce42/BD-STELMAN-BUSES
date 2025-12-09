@@ -1,0 +1,59 @@
+{% extends 'privado/base.html' %}
+
+{% block title %}Incidencias Operativas{% endblock %}
+
+{% block content %}
+
+<h1>🛠️ Incidencias Operativas</h1>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<section style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
+    <a href="{{ url_for('panel_incidencias_operativas', nuevo_incidencia='true') }}#modal-nueva" class="btn btn-primary">
+        ➕ Nueva Incidencia Operativa
+    </a>
+</section>
+
+<hr>
+
+<section>
+    <table border="1" width="100%" cellpadding="6">
+        <tr style="background: #f0f0f0;">
+            <th>Fecha</th>
+            <th>Descripción</th>
+            <th>Gravedad</th>
+            <th>Costo</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+
+        {% for inc in incidencias %}
+        <tr>
+            <td>{{ inc.fecha }}</td>
+            <td>{{ inc.descripcion }}</td>
+            <td>{{ inc.gravedad }}</td>
+            <td>{{ inc.costo }}</td>
+            <td>{{ inc.estado }}</td>
+            <td style="text-align:right;">
+                <a href="{{ url_for('panel_incidencias_operativas', editar=inc.id_incidencia) }}#modal-editar" class="btn-sm">✏️ Editar</a>
+                <a href="{{ url_for('eliminar_incidencia_operativa', id_incidencia=inc.id_incidencia) }}" class="btn-sm btn-warning"
+                   onclick="return confirm('¿Seguro de eliminar esta incidencia operativa?')">🗑️ Eliminar</a>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="6" style="text-align:center;">⚠ No hay incidencias operativas.</td>
+        </tr>
+        {% endfor %}
+    </table>
+</section>
+
+{# Modal para crear/editar operativa similar al ejemplo de cobradores #}
+
+{% endblock %}
