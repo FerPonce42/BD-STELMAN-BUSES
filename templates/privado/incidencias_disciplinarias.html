@@ -14,6 +14,7 @@
     {% endif %}
 {% endwith %}
 
+<!-- Botón Nueva Incidencia -->
 <section style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
     <a href="{{ url_for('panel_incidencias_disciplinarias', nuevo_incidencia='true') }}#modal-nueva" class="btn btn-primary">
         ➕ Nueva Incidencia Disciplinaria
@@ -22,7 +23,9 @@
 
 <hr>
 
+<!-- Tabla de incidencias -->
 <section>
+    <h2>Incidencias Registradas</h2>
     <table border="1" width="100%" cellpadding="6">
         <tr style="background: #f0f0f0;">
             <th>Fecha</th>
@@ -30,7 +33,7 @@
             <th>Tipo</th>
             <th>Sanción</th>
             <th>Estado</th>
-            <th>Acciones</th>
+            <th style="text-align:right;">Acciones</th>
         </tr>
 
         {% for inc in incidencias %}
@@ -54,6 +57,62 @@
     </table>
 </section>
 
-{# Modal para crear/editar disciplinaria similar al ejemplo de cobradores #}
+<hr style="margin-top: 40px; border-color: #333;">
+
+{# ===================== NUEVA INCIDENCIA ===================== #}
+{% if 'nuevo_incidencia' in request.args %}
+<div id="modal-nueva" style="border:2px solid green; padding:20px;">
+    <h2>➕ Registrar Nueva Incidencia Disciplinaria</h2>
+    <form method="post" action="{{ url_for('registrar_incidencia_disciplinaria') }}">
+        <label>Fecha</label>
+        <input type="date" name="fecha" required min="2000-01-01" max="{{ hoy }}">
+        <label>Descripción</label>
+        <textarea name="descripcion" rows="3" required></textarea>
+        <label>Tipo Disciplinaria</label>
+        <input type="text" name="tipo_disciplinaria" required>
+        <label>Sanción</label>
+        <input type="text" name="sancion" required>
+        <label>Estado</label>
+        <select name="estado" required>
+            <option value="Pendiente">Pendiente</option>
+            <option value="Resuelta">Resuelta</option>
+            <option value="Cancelada">Cancelada</option>
+        </select>
+
+        <br><br>
+        <button type="submit">Guardar</button>
+        <a href="{{ url_for('panel_incidencias_disciplinarias') }}" class="btn-sm">Cancelar</a>
+    </form>
+</div>
+{% endif %}
+
+{# ===================== EDITAR INCIDENCIA ===================== #}
+{% if editar_incidencia %}
+<div id="modal-editar" style="border:2px solid orange; padding:20px;">
+    <h2>✏️ Editar Incidencia Disciplinaria</h2>
+    <form method="post" action="{{ url_for('actualizar_incidencia_disciplinaria') }}">
+        <input type="hidden" name="id_incidencia" value="{{ editar_incidencia.id_incidencia }}">
+
+        <label>Fecha</label>
+        <input type="date" name="fecha" value="{{ editar_incidencia.fecha }}" required min="2000-01-01" max="{{ hoy }}">
+        <label>Descripción</label>
+        <textarea name="descripcion" rows="3" required>{{ editar_incidencia.descripcion }}</textarea>
+        <label>Tipo Disciplinaria</label>
+        <input type="text" name="tipo_disciplinaria" value="{{ editar_incidencia.tipo_disciplinaria }}" required>
+        <label>Sanción</label>
+        <input type="text" name="sancion" value="{{ editar_incidencia.sancion }}" required>
+        <label>Estado</label>
+        <select name="estado" required>
+            <option value="Pendiente" {% if editar_incidencia.estado=='Pendiente' %}selected{% endif %}>Pendiente</option>
+            <option value="Resuelta" {% if editar_incidencia.estado=='Resuelta' %}selected{% endif %}>Resuelta</option>
+            <option value="Cancelada" {% if editar_incidencia.estado=='Cancelada' %}selected{% endif %}>Cancelada</option>
+        </select>
+
+        <br><br>
+        <button type="submit">Actualizar</button>
+        <a href="{{ url_for('panel_incidencias_disciplinarias') }}" class="btn-sm">Cancelar</a>
+    </form>
+</div>
+{% endif %}
 
 {% endblock %}

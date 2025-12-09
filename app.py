@@ -3,7 +3,7 @@ from flask_mysqldb import MySQL
 from config import Config
 from datetime import datetime
 
-
+from datetime import datetime, date
 # -----------------------------------------
 # CONFIG GENERAL
 # -----------------------------------------
@@ -744,6 +744,7 @@ def panel_incidencias():
         return redirect(url_for('login'))
     return render_template("privado/incidencias.html")
 
+
 # =============================================
 # INCIDENCIAS DISCIPLINARIAS
 # =============================================
@@ -771,11 +772,9 @@ def panel_incidencias_disciplinarias():
                    id.tipo_disciplinaria, id.sancion
             FROM incidencia i
             JOIN incidencia_disciplinaria id ON i.id_incidencia=id.id_incidencia
-            -- Se pueden filtrar por empleados asignados a la ruta si aplica
             ORDER BY i.fecha DESC
         """)
     else:
-        # Si no tiene ruta, mostrar todas o ninguna según política
         cursor.execute("""
             SELECT i.id_incidencia, i.fecha, i.descripcion, i.estado,
                    id.tipo_disciplinaria, id.sancion
@@ -786,22 +785,37 @@ def panel_incidencias_disciplinarias():
     incidencias = cursor.fetchall()
     cursor.close()
 
+    # Pasar fecha actual para limitar input en HTML
     return render_template("privado/incidencias_disciplinarias.html",
                            incidencias=incidencias,
-                           id_ruta=id_ruta)
+                           id_ruta=id_ruta,
+                           hoy=date.today().isoformat())
+
 
 # Crear nueva incidencia disciplinaria
 @app.route("/registrar_incidencia_disciplinaria", methods=['POST'])
 def registrar_incidencia_disciplinaria():
     cursor = mysql.connection.cursor()
     try:
+        # VALIDAR FECHA CON datetime.strptime
+        try:
+            fecha_obj = datetime.strptime(request.form["fecha"], "%Y-%m-%d").date()
+        except ValueError:
+            flash("❌ Fecha inválida. Usa formato YYYY-MM-DD.", "danger")
+            return redirect(url_for("panel_incidencias_disciplinarias"))
+
+        # VALIDAR RANGO DE FECHA
+        if fecha_obj < date(2000, 1, 1) or fecha_obj > date.today():
+            flash("❌ Fecha fuera del rango permitido (2000 hasta hoy).", "danger")
+            return redirect(url_for("panel_incidencias_disciplinarias"))
+
         mysql.connection.begin()
 
         cursor.execute("""
             INSERT INTO incidencia(fecha, descripcion, estado)
             VALUES (%s, %s, %s)
         """, (
-            request.form["fecha"],
+            fecha_obj,
             request.form["descripcion"],
             request.form["estado"]
         ))
@@ -821,8 +835,11 @@ def registrar_incidencia_disciplinaria():
     except Exception as e:
         mysql.connection.rollback()
         flash(f"❌ Error: {str(e)}", "danger")
-    cursor.close()
+    finally:
+        cursor.close()
+
     return redirect(url_for("panel_incidencias_disciplinarias"))
+
 
 # Eliminar incidencia disciplinaria
 @app.route("/eliminar_incidencia_disciplinaria/<int:id_incidencia>", methods=['GET'])
@@ -837,7 +854,9 @@ def eliminar_incidencia_disciplinaria(id_incidencia):
     except Exception as e:
         mysql.connection.rollback()
         flash(f"❌ Error: {str(e)}", "danger")
-    cursor.close()
+    finally:
+        cursor.close()
+
     return redirect(url_for("panel_incidencias_disciplinarias"))
 
 # =============================================
