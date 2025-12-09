@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from flask_mysqldb import MySQL
 from config import Config
 from datetime import datetime
-
+import MySQLdb.cursors
 from datetime import datetime, date
 # -----------------------------------------
 # CONFIG GENERAL
@@ -1166,6 +1166,250 @@ def eliminar_incidencia_operativa(id_incidencia):
 
 
 
+
+# =============================================
+# PANEL DE CAJA
+# =============================================
+# ===================== PANEL DE CAJA =====================
+@app.route("/panel/caja", methods=['GET'])
+def panel_caja():
+    if 'usuario' not in session:
+        return redirect(url_for('login'))
+
+    # ✅ CORRECCIÓN CLAVE: Usar DictCursor para acceder a los datos por nombre (e.nombre, e.apellido)
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor) 
+    id_supervisor = session['id']
+
+    # Ruta activa del supervisor
+    cursor.execute("""
+        SELECT id_ruta
+        FROM supervisor_ruta
+        WHERE id_empleado=%s AND fecha_fin IS NULL
+    """, (id_supervisor,))
+    row = cursor.fetchone()
+    id_ruta = row['id_ruta'] if row else None
+
+    cajas, empleados, buses = [], [], []
+
+    if id_ruta:
+        # Historial de recaudaciones
+        cursor.execute("""
+            SELECT c.id_caja, c.fecha, c.monto_recaudado, c.observacion,
+                   e.id_empleado, p.nombre, p.apellido, b.id_bus, b.placa
+            FROM caja c
+            JOIN empleado e ON c.id_empleado = e.id_empleado
+            JOIN persona p ON e.id_persona = p.id_persona
+            JOIN bus b ON c.id_bus = b.id_bus
+            WHERE c.id_ruta=%s
+            ORDER BY c.fecha DESC
+        """, (id_ruta,))
+        cajas = cursor.fetchall()
+
+        # Cobradores de la ruta (Consulta que asegura que sean cobradores asignados a un bus de la ruta)
+        cursor.execute("""
+            SELECT e.id_empleado, p.nombre, p.apellido
+            FROM persona p
+            JOIN empleado e ON e.id_persona = p.id_persona
+            JOIN cobrador co ON e.id_empleado = co.id_empleado 
+            WHERE e.id_empleado IN (
+                SELECT ab.id_empleado
+                FROM asignacion_bus ab
+                JOIN bus_ruta br ON ab.id_bus = br.id_bus
+                WHERE br.id_ruta = %s
+            )
+        """, (id_ruta,))
+        empleados = cursor.fetchall()
+
+        # Buses de la ruta
+        cursor.execute("""
+            SELECT b.id_bus, b.placa
+            FROM bus b
+            JOIN bus_ruta br ON b.id_bus = br.id_bus
+            WHERE br.id_ruta = %s
+        """, (id_ruta,))
+        buses = cursor.fetchall()
+
+    cursor.close()
+    hoy = datetime.today().strftime("%Y-%m-%d")
+
+    return render_template("privado/caja.html",
+                           cajas=cajas,
+                           empleados=empleados,
+                           buses=buses,
+                           id_ruta=id_ruta,
+                           editar_caja=None,
+                           hoy=hoy)
+
+
+# ===================== REGISTRAR RECAUDACIÓN =====================
+@app.route("/registrar_caja", methods=['POST'])
+def registrar_caja():
+    if 'usuario' not in session:
+        return redirect(url_for('login'))
+
+    # ✅ CORRECCIÓN CLAVE: Usar DictCursor
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor) 
+    id_supervisor = session['id']
+
+    try:
+        cursor.execute("""
+            SELECT id_ruta
+            FROM supervisor_ruta
+            WHERE id_empleado=%s AND fecha_fin IS NULL
+        """, (id_supervisor,))
+        row = cursor.fetchone()
+        id_ruta = row['id_ruta'] if row else None
+
+        if not id_ruta:
+            flash("❌ No tienes una ruta activa.", "danger")
+            return redirect(url_for("panel_caja"))
+
+        fecha = request.form.get("fecha")
+        monto = request.form.get("monto")
+        observacion = request.form.get("observacion")
+        id_empleado = request.form.get("id_empleado")
+        id_bus = request.form.get("id_bus")
+
+        if not fecha or not monto or not id_empleado or not id_bus:
+            flash("❌ Debes completar todos los campos obligatorios.", "danger")
+            return redirect(url_for("panel_caja"))
+
+        fecha_obj = datetime.strptime(fecha, "%Y-%m-%d").date()
+        monto = float(monto)
+
+        mysql.connection.begin()
+        cursor.execute("""
+            INSERT INTO caja(id_empleado, id_ruta, id_bus, fecha, monto_recaudado, observacion)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (id_empleado, id_ruta, id_bus, fecha_obj, monto, observacion))
+        mysql.connection.commit()
+        flash("✔ Recaudación registrada correctamente.", "success")
+
+    except Exception as e:
+        mysql.connection.rollback()
+        flash(f"❌ Error: {str(e)}", "danger")
+    finally:
+        cursor.close()
+
+    return redirect(url_for("panel_caja"))
+
+
+# ===================== ELIMINAR RECAUDACIÓN =====================
+@app.route("/eliminar_caja/<int:id_caja>", methods=['GET'])
+def eliminar_caja(id_caja):
+    if 'usuario' not in session:
+        return redirect(url_for('login'))
+
+    # ✅ CORRECCIÓN CLAVE: Usar DictCursor
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor) 
+    try:
+        mysql.connection.begin()
+        cursor.execute("DELETE FROM caja WHERE id_caja=%s", (id_caja,))
+        mysql.connection.commit()
+        flash("✔ Recaudación eliminada.", "success")
+    except Exception as e:
+        mysql.connection.rollback()
+        flash(f"❌ Error: {str(e)}", "danger")
+    finally:
+        cursor.close()
+
+    return redirect(url_for("panel_caja"))
+
+
+# ===================== EDITAR RECAUDACIÓN =====================
+@app.route("/editar_caja/<int:id_caja>", methods=['GET'])
+def editar_caja(id_caja):
+    if 'usuario' not in session:
+        return redirect(url_for('login'))
+
+    # ✅ CORRECCIÓN CLAVE: Usar DictCursor
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor) 
+    id_supervisor = session['id']
+
+    cursor.execute("""
+        SELECT id_ruta
+        FROM supervisor_ruta
+        WHERE id_empleado=%s AND fecha_fin IS NULL
+    """, (id_supervisor,))
+    row = cursor.fetchone()
+    id_ruta = row['id_ruta'] if row else None
+
+    # Obtener recaudación
+    cursor.execute("SELECT * FROM caja WHERE id_caja=%s", (id_caja,))
+    editar_caja = cursor.fetchone()
+
+    # Cobradores de la ruta
+    cursor.execute("""
+        SELECT e.id_empleado, p.nombre, p.apellido
+        FROM persona p
+        JOIN empleado e ON e.id_persona = p.id_persona
+        JOIN cobrador co ON e.id_empleado = co.id_empleado
+        WHERE e.id_empleado IN (
+            SELECT ab.id_empleado
+            FROM asignacion_bus ab
+            JOIN bus_ruta br ON ab.id_bus = br.id_bus
+            WHERE br.id_ruta = %s
+        )
+    """, (id_ruta,))
+    empleados = cursor.fetchall()
+
+    # Buses de la ruta
+    cursor.execute("""
+        SELECT b.id_bus, b.placa
+        FROM bus b
+        JOIN bus_ruta br ON b.id_bus = br.id_bus
+        WHERE br.id_ruta = %s
+    """, (id_ruta,))
+    buses = cursor.fetchall()
+
+    cursor.close()
+    hoy = datetime.today().strftime("%Y-%m-%d")
+
+    return render_template("privado/caja.html",
+                           cajas=[],
+                           empleados=empleados,
+                           buses=buses,
+                           id_ruta=id_ruta,
+                           editar_caja=editar_caja,
+                           hoy=hoy)
+
+
+# ===================== ACTUALIZAR RECAUDACIÓN =====================
+@app.route("/actualizar_caja", methods=['POST'])
+def actualizar_caja():
+    if 'usuario' not in session:
+        return redirect(url_for('login'))
+
+    # ✅ CORRECCIÓN CLAVE: Usar DictCursor
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor) 
+    try:
+        id_caja = request.form["id_caja"]
+        fecha = request.form["fecha"]
+        monto = float(request.form["monto"])
+        observacion = request.form["observacion"]
+        id_empleado = request.form["id_empleado"]
+        id_bus = request.form["id_bus"]
+
+        mysql.connection.begin()
+        cursor.execute("""
+            UPDATE caja
+            SET fecha=%s, monto_recaudado=%s, observacion=%s,
+                id_empleado=%s, id_bus=%s
+            WHERE id_caja=%s
+        """, (fecha, monto, observacion, id_empleado, id_bus, id_caja))
+        mysql.connection.commit()
+        flash("✔ Recaudación actualizada correctamente.", "success")
+
+    except Exception as e:
+        mysql.connection.rollback()
+        flash(f"❌ Error: {str(e)}", "danger")
+    finally:
+        cursor.close()
+
+    return redirect(url_for("panel_caja"))
+
+
+
 @app.route("/panel/rutas")
 def panel_rutas():
     if 'usuario' not in session:
@@ -1173,11 +1417,7 @@ def panel_rutas():
     return render_template("privado/rutas.html")
 
 
-@app.route("/panel/caja")
-def panel_caja():
-    if 'usuario' not in session:
-        return redirect(url_for('login'))
-    return render_template("privado/caja.html")
+
 
 
 @app.route("/panel/reportes")
