@@ -3,8 +3,37 @@
 {% block title %}Reportes | Stelman{% endblock %}
 
 {% block content %}
-<h1>Reportes y estadísticas</h1>
 
-<p>(Aquí más adelante colocamos gráficos o tablas globales)</p>
+<h1>📊 Reportes del Sistema</h1>
+
+<p>Desde aquí puedes generar la documentación técnica de la base de datos y otros reportes globales.</p>
+
+<hr style="margin: 20px 0;">
+
+<h2>📁 Exportar Base de Datos</h2>
+<p>Genera un archivo Excel con:</p>
+<ul>
+    <li>Estructura de todas las tablas </li>
+    <li>Primary Keys y Foreign Keys</li>
+    <li>Número de atributos por tabla</li>
+    <li>Datos insertados </li>
+    <li>Índice general de toda la base de datos</li>
+</ul>
+
+<div style="margin-top: 20px;">
+    <a href="/exportar_excel"
+       style="
+            display: inline-block;
+            padding: 12px 20px;
+            background: #4CAF50;
+            color: white;
+            font-weight: bold;
+            border-radius: 8px;
+            text-decoration: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+       ">
+       📄 Exportar Estructura Completa (Excel)
+    </a>
+</div>
 
 {% endblock %}

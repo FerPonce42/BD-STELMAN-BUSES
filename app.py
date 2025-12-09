@@ -1,8 +1,17 @@
+#funcionamiento general
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_mysqldb import MySQL
 from config import Config
 import MySQLdb.cursors
 from datetime import datetime, date
+
+#para el excel exportable:
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.utils import get_column_letter
+from flask import send_file
+from io import BytesIO
+
 #=====================================================
 # CONFIG GENERAL
 #=====================================================
@@ -1597,6 +1606,265 @@ def logout():
     session.clear()
     flash("Sesión cerrada correctamente", "info")
     return redirect(url_for('login'))
+
+
+
+
+#=====================================================
+# EXPORTAR EXCEL
+#=====================================================
+
+@app.route('/exportar_excel')
+def exportar_excel():
+    cursor = mysql.connection.cursor()
+
+    cursor.execute("SELECT DATABASE()")
+    db_row = cursor.fetchone()
+    db_name = db_row[list(db_row.keys())[0]] if db_row else "bd_stelman_buses"
+
+    
+    wb = Workbook()
+    wb.remove(wb.active)
+
+   
+    title_font = Font(size=20, bold=True)
+    subtitle_font = Font(size=12, italic=True)
+    header_font = Font(bold=True)
+    pk_fill = PatternFill("solid", fgColor="FFD966")        
+    fk_fill = PatternFill("solid", fgColor="C9DAF8")      
+    ddl_fill = PatternFill("solid", fgColor="FFF2CC")    
+    index_header_fill = PatternFill("solid", fgColor="C6E0B4")
+    alt_fill = PatternFill("solid", fgColor="F2F2F2")
+    thin = Side(style="thin")
+    border = Border(left=thin, right=thin, top=thin, bottom=thin)
+    center_align = Alignment(horizontal="center", vertical="center")
+
+    def auto_width(sheet):
+        
+        for col in sheet.columns:
+            max_len = 0
+            try:
+                col_letter = get_column_letter(col[0].column)
+            except Exception:
+                continue
+            for cell in col:
+                if cell.value is not None:
+                    
+                    try:
+                        l = len(str(cell.value))
+                    except Exception:
+                        l = 1
+                    if l > max_len:
+                        max_len = l
+            sheet.column_dimensions[col_letter].width = min(max(max_len + 2, 10), 60)
+
+    
+    ws_port = wb.create_sheet("PORTADA")
+    ws_port.merge_cells("A1:F1")
+    ws_port["A1"] = "DOCUMENTACIÓN TÉCNICA - BD STELMAN BUSES"
+    ws_port["A1"].font = title_font
+    ws_port["A3"] = f"Base de datos: {db_name}"
+    ws_port["A3"].font = subtitle_font
+    ws_port["A4"] = f"Generado el: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+    ws_port["A5"] = "Generado por: Sistema Stelman - Exportador Premium"
+    ws_port["A7"] = "Contenido:"
+    ws_port["A8"] = "- Índice con links a cada hoja"
+    ws_port["A9"] = "- DDL completo por tabla"
+    ws_port["A10"] = "- Hojas por tabla con datos, PK y FK resaltadas"
+    auto_width(ws_port)
+
+   
+    ws_index = wb.create_sheet("Índice")
+    headers = ["#","Tabla","Atributos","Registros","PK","FK","Estado","Link hoja"]
+    ws_index.append(headers)
+    for c in ws_index[1]:
+        c.font = header_font
+        c.fill = index_header_fill
+        c.alignment = center_align
+        c.border = border
+
+    
+    ws_sql = wb.create_sheet("CREATE")
+    ws_sql.append(["Tabla", "CREATE TABLE (DDL)"])
+    for c in ws_sql[1]:
+        c.font = header_font
+        c.fill = index_header_fill
+        c.border = border
+
+    
+    cursor.execute("SHOW TABLES")
+    rows = cursor.fetchall()
+    if not rows:
+        cursor.close()
+        flash("❌ No se encontraron tablas en la base de datos.", "danger")
+        return redirect(url_for('panel_reportes'))
+    key = list(rows[0].keys())[0]
+    tablas = [r[key] for r in rows]
+
+
+    relations = []
+
+
+    idx = 2
+    for t in tablas:
+        
+        cursor.execute(f"SHOW CREATE TABLE `{t}`")
+        ddl_row = cursor.fetchone()
+        ddl = ddl_row.get("Create Table") if ddl_row and "Create Table" in ddl_row else str(ddl_row)
+
+        
+        cursor.execute("""
+            SELECT COLUMN_NAME, COLUMN_KEY, COLUMN_TYPE, IS_NULLABLE, COLUMN_DEFAULT
+            FROM INFORMATION_SCHEMA.COLUMNS
+            WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s
+            ORDER BY ORDINAL_POSITION
+        """, (db_name, t))
+        cols = cursor.fetchall()
+
+      
+        try:
+            cursor.execute(f"SELECT COUNT(*) AS c FROM `{t}`")
+            cnt = cursor.fetchone()["c"]
+        except Exception:
+            cnt = 0
+
+      
+        pk = [c["COLUMN_NAME"] for c in cols if c["COLUMN_KEY"] == "PRI"]
+        pk_str = ", ".join(pk) if pk else "—"
+
+      
+        cursor.execute("""
+            SELECT COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME
+            FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+            WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s
+              AND REFERENCED_TABLE_NAME IS NOT NULL
+        """, (db_name, t))
+        fks = cursor.fetchall()
+        fk_str = ", ".join([f"{f['COLUMN_NAME']} → {f['REFERENCED_TABLE_NAME']}.{f['REFERENCED_COLUMN_NAME']}" for f in fks]) or "—"
+
+    
+        estado = "OK"
+        if not pk:
+            estado = "⚠ Sin PK"
+
+        ws_index.append([idx-1, t, len(cols), cnt, pk_str, fk_str, estado, f"=HYPERLINK(\"#{t}!A1\",\"Abrir\")"])
+        idx += 1
+
+   
+        ws_sql.append([t, ddl])
+
+    
+        sheet_name = t[:31]
+        ws = wb.create_sheet(sheet_name)
+
+  
+        ws["A1"] = f"CREATE TABLE: {t}"
+        ws["A1"].font = header_font
+        ws["A1"].fill = ddl_fill
+        ws.merge_cells("A1:F1")
+
+       
+        ws["A2"] = ddl
+        ws["A2"].alignment = Alignment(wrap_text=True)
+        ws["A2"].fill = ddl_fill
+        ws.merge_cells("A2:F4")
+        ws.row_dimensions[2].height = 70
+
+       
+        ws["A6"] = "PK:"
+        ws["B6"] = pk_str
+        ws["A7"] = "FK:"
+        ws["B7"] = fk_str
+
+       
+        for fk in fks:
+            relations.append((t, fk["COLUMN_NAME"], fk["REFERENCED_TABLE_NAME"], fk["REFERENCED_COLUMN_NAME"]))
+
+      
+        cursor.execute(f"SELECT * FROM `{t}` LIMIT 1000")
+        datos = cursor.fetchall()
+        headers_data = [c["COLUMN_NAME"] for c in cols]
+
+        row_start = 9
+        col_idx = 1
+        for h in headers_data:
+            cell = ws.cell(row=row_start, column=col_idx, value=h)
+            cell.font = header_font
+            cell.fill = index_header_fill
+            cell.border = border
+            cell.alignment = center_align
+            col_idx += 1
+
+  
+        fila = row_start + 1
+        for row in datos:
+            col_idx = 1
+            for h in headers_data:
+                v = row.get(h)
+                cell = ws.cell(row=fila, column=col_idx, value=v)
+               
+                if h in pk:
+                    cell.fill = pk_fill
+                else:
+                    
+                    fk_cols = [f['COLUMN_NAME'] for f in fks]
+                    if h in fk_cols:
+                        cell.fill = fk_fill
+                cell.border = border
+                col_idx += 1
+            fila += 1
+
+       
+        last_col = get_column_letter(len(headers_data))
+        if datos:
+            ws.auto_filter.ref = f"A{row_start}:{last_col}{fila-1}"
+
+   
+        ws.freeze_panes = f"A{row_start+1}"
+
+        
+        auto_width(ws)
+
+ 
+    ws_erd = wb.create_sheet("ERD_TEXTUAL")
+    ws_erd["A1"] = "Mini ERD (texto)"
+    ws_erd["A1"].font = header_font
+    r = 3
+    if relations:
+        for (src_table, src_col, dst_table, dst_col) in relations:
+            ws_erd.cell(row=r, column=1, value=f"{src_table}.{src_col}  →  {dst_table}.{dst_col}")
+            r += 1
+    else:
+        ws_erd["A3"] = "No se detectaron relaciones (FK) en el export."
+    auto_width(ws_erd)
+
+   
+    auto_width(ws_index)
+    auto_width(ws_sql)
+
+    
+    for i, row in enumerate(ws_index.iter_rows(min_row=2, max_col=8), start=2):
+        estado_cell = row[6]  
+        try:
+            if "Sin PK" in str(estado_cell.value):
+                for c in row:
+                    c.fill = PatternFill("solid", fgColor="FFD7D7")  
+        except Exception:
+            pass
+
+    
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    file_name = f"DOCUMENTACION_BD_{db_name}_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx"
+
+    cursor.close()
+    return send_file(output,
+                     download_name=file_name,
+                     as_attachment=True,
+                     mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
 
 
 #=====================================================
