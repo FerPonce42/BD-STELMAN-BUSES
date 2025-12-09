@@ -1170,13 +1170,13 @@ def eliminar_incidencia_operativa(id_incidencia):
 # =============================================
 # PANEL DE CAJA
 # =============================================
+
 # ===================== PANEL DE CAJA =====================
 @app.route("/panel/caja", methods=['GET'])
 def panel_caja():
     if 'usuario' not in session:
         return redirect(url_for('login'))
 
-    # ✅ CORRECCIÓN CLAVE: Usar DictCursor para acceder a los datos por nombre (e.nombre, e.apellido)
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor) 
     id_supervisor = session['id']
 
@@ -1192,7 +1192,7 @@ def panel_caja():
     cajas, empleados, buses = [], [], []
 
     if id_ruta:
-        # Historial de recaudaciones
+        # Historial de recaudaciones (No se modifica, filtra por c.id_ruta=%s)
         cursor.execute("""
             SELECT c.id_caja, c.fecha, c.monto_recaudado, c.observacion,
                    e.id_empleado, p.nombre, p.apellido, b.id_bus, b.placa
@@ -1205,22 +1205,32 @@ def panel_caja():
         """, (id_ruta,))
         cajas = cursor.fetchall()
 
-        # Cobradores de la ruta (Consulta que asegura que sean cobradores asignados a un bus de la ruta)
+        # ✅ CORRECCIÓN APLICADA AQUÍ: Cobradores de la ruta (Asignados a un bus de la ruta O sin ninguna asignación de bus)
         cursor.execute("""
-            SELECT e.id_empleado, p.nombre, p.apellido
-            FROM persona p
-            JOIN empleado e ON e.id_persona = p.id_persona
-            JOIN cobrador co ON e.id_empleado = co.id_empleado 
-            WHERE e.id_empleado IN (
-                SELECT ab.id_empleado
-                FROM asignacion_bus ab
-                JOIN bus_ruta br ON ab.id_bus = br.id_bus
-                WHERE br.id_ruta = %s
+            (
+                SELECT DISTINCT e.id_empleado, p.nombre, p.apellido
+                FROM persona p
+                JOIN empleado e ON e.id_persona = p.id_persona
+                JOIN cobrador co ON e.id_empleado = co.id_empleado 
+                WHERE e.id_empleado IN (
+                    SELECT ab.id_empleado
+                    FROM asignacion_bus ab
+                    JOIN bus_ruta br ON ab.id_bus = br.id_bus
+                    WHERE br.id_ruta = %s
+                )
+            )
+            UNION
+            (
+                SELECT e.id_empleado, p.nombre, p.apellido
+                FROM persona p
+                JOIN empleado e ON e.id_persona = p.id_persona
+                JOIN cobrador co ON e.id_empleado = co.id_empleado 
+                WHERE e.id_empleado NOT IN (SELECT id_empleado FROM asignacion_bus)
             )
         """, (id_ruta,))
         empleados = cursor.fetchall()
 
-        # Buses de la ruta
+        # Buses de la ruta (No se modifica)
         cursor.execute("""
             SELECT b.id_bus, b.placa
             FROM bus b
@@ -1239,7 +1249,6 @@ def panel_caja():
                            id_ruta=id_ruta,
                            editar_caja=None,
                            hoy=hoy)
-
 
 # ===================== REGISTRAR RECAUDACIÓN =====================
 @app.route("/registrar_caja", methods=['POST'])
