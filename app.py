@@ -783,13 +783,27 @@ def panel_incidencias_disciplinarias():
             ORDER BY i.fecha DESC
         """)
     incidencias = cursor.fetchall()
+
+    # Capturar parámetro "editar" para rellenar modal
+    editar_id = request.args.get('editar')
+    editar_incidencia = None
+    if editar_id:
+        cursor.execute("""
+            SELECT i.id_incidencia, i.fecha, i.descripcion, i.estado,
+                   id.tipo_disciplinaria, id.sancion
+            FROM incidencia i
+            JOIN incidencia_disciplinaria id ON i.id_incidencia=id.id_incidencia
+            WHERE i.id_incidencia=%s
+        """, (editar_id,))
+        editar_incidencia = cursor.fetchone()
+
     cursor.close()
 
-    # Pasar fecha actual para limitar input en HTML
     return render_template("privado/incidencias_disciplinarias.html",
                            incidencias=incidencias,
                            id_ruta=id_ruta,
-                           hoy=date.today().isoformat())
+                           hoy=date.today().isoformat(),
+                           editar_incidencia=editar_incidencia)
 
 
 # Crear nueva incidencia disciplinaria
@@ -797,14 +811,12 @@ def panel_incidencias_disciplinarias():
 def registrar_incidencia_disciplinaria():
     cursor = mysql.connection.cursor()
     try:
-        # VALIDAR FECHA CON datetime.strptime
         try:
             fecha_obj = datetime.strptime(request.form["fecha"], "%Y-%m-%d").date()
         except ValueError:
             flash("❌ Fecha inválida. Usa formato YYYY-MM-DD.", "danger")
             return redirect(url_for("panel_incidencias_disciplinarias"))
 
-        # VALIDAR RANGO DE FECHA
         if fecha_obj < date(2000, 1, 1) or fecha_obj > date.today():
             flash("❌ Fecha fuera del rango permitido (2000 hasta hoy).", "danger")
             return redirect(url_for("panel_incidencias_disciplinarias"))
@@ -832,6 +844,57 @@ def registrar_incidencia_disciplinaria():
 
         mysql.connection.commit()
         flash("✔ Incidencia disciplinaria registrada.", "success")
+    except Exception as e:
+        mysql.connection.rollback()
+        flash(f"❌ Error: {str(e)}", "danger")
+    finally:
+        cursor.close()
+
+    return redirect(url_for("panel_incidencias_disciplinarias"))
+
+
+# Actualizar incidencia disciplinaria
+@app.route("/actualizar_incidencia_disciplinaria", methods=['POST'])
+def actualizar_incidencia_disciplinaria():
+    cursor = mysql.connection.cursor()
+    try:
+        id_incidencia = request.form["id_incidencia"]
+
+        try:
+            fecha_obj = datetime.strptime(request.form["fecha"], "%Y-%m-%d").date()
+        except ValueError:
+            flash("❌ Fecha inválida. Usa formato YYYY-MM-DD.", "danger")
+            return redirect(url_for("panel_incidencias_disciplinarias"))
+
+        if fecha_obj < date(2000, 1, 1) or fecha_obj > date.today():
+            flash("❌ Fecha fuera del rango permitido (2000 hasta hoy).", "danger")
+            return redirect(url_for("panel_incidencias_disciplinarias"))
+
+        mysql.connection.begin()
+
+        cursor.execute("""
+            UPDATE incidencia
+            SET fecha=%s, descripcion=%s, estado=%s
+            WHERE id_incidencia=%s
+        """, (
+            fecha_obj,
+            request.form["descripcion"],
+            request.form["estado"],
+            id_incidencia
+        ))
+
+        cursor.execute("""
+            UPDATE incidencia_disciplinaria
+            SET tipo_disciplinaria=%s, sancion=%s
+            WHERE id_incidencia=%s
+        """, (
+            request.form["tipo_disciplinaria"],
+            request.form["sancion"],
+            id_incidencia
+        ))
+
+        mysql.connection.commit()
+        flash("✔ Incidencia disciplinaria actualizada.", "success")
     except Exception as e:
         mysql.connection.rollback()
         flash(f"❌ Error: {str(e)}", "danger")
@@ -886,7 +949,6 @@ def panel_incidencias_operativas():
                    io.gravedad, io.costo, io.requiere_seguro
             FROM incidencia i
             JOIN incidencia_operativa io ON i.id_incidencia=io.id_incidencia
-            -- Se pueden filtrar por buses asignados a la ruta si aplica
             ORDER BY i.fecha DESC
         """)
     else:
@@ -898,28 +960,59 @@ def panel_incidencias_operativas():
             ORDER BY i.fecha DESC
         """)
     incidencias = cursor.fetchall()
+
+    # Capturar parámetro "editar" para rellenar modal
+    editar_id = request.args.get('editar')
+    editar_incidencia = None
+    if editar_id:
+        cursor.execute("""
+            SELECT i.id_incidencia, i.fecha, i.descripcion, i.estado,
+                   io.gravedad, io.costo, io.requiere_seguro
+            FROM incidencia i
+            JOIN incidencia_operativa io ON i.id_incidencia=io.id_incidencia
+            WHERE i.id_incidencia=%s
+        """, (editar_id,))
+        editar_incidencia = cursor.fetchone()
+
     cursor.close()
 
+    # Pasar fecha actual para limitar input en HTML
     return render_template("privado/incidencias_operativas.html",
                            incidencias=incidencias,
-                           id_ruta=id_ruta)
+                           id_ruta=id_ruta,
+                           hoy=date.today().isoformat(),
+                           editar_incidencia=editar_incidencia)
+
 
 # Crear nueva incidencia operativa
 @app.route("/registrar_incidencia_operativa", methods=['POST'])
 def registrar_incidencia_operativa():
     cursor = mysql.connection.cursor()
     try:
+        try:
+            fecha_obj = datetime.strptime(request.form["fecha"], "%Y-%m-%d").date()
+        except ValueError:
+            flash("❌ Fecha inválida. Usa formato YYYY-MM-DD.", "danger")
+            return redirect(url_for("panel_incidencias_operativas"))
+
+        if fecha_obj < date(2000, 1, 1) or fecha_obj > date.today():
+            flash("❌ Fecha fuera del rango permitido (2000 hasta hoy).", "danger")
+            return redirect(url_for("panel_incidencias_operativas"))
+
         mysql.connection.begin()
 
         cursor.execute("""
             INSERT INTO incidencia(fecha, descripcion, estado)
             VALUES (%s, %s, %s)
         """, (
-            request.form["fecha"],
+            fecha_obj,
             request.form["descripcion"],
             request.form["estado"]
         ))
         id_incidencia = cursor.lastrowid
+
+        requiere_seguro = 1 if request.form.get("requiere_seguro") == "on" else 0
+        costo = request.form.get("costo") or 0
 
         cursor.execute("""
             INSERT INTO incidencia_operativa(id_incidencia, gravedad, costo, requiere_seguro)
@@ -927,8 +1020,8 @@ def registrar_incidencia_operativa():
         """, (
             id_incidencia,
             request.form["gravedad"],
-            request.form["costo"],
-            1 if request.form.get("requiere_seguro") else 0
+            costo,
+            requiere_seguro
         ))
 
         mysql.connection.commit()
@@ -936,8 +1029,66 @@ def registrar_incidencia_operativa():
     except Exception as e:
         mysql.connection.rollback()
         flash(f"❌ Error: {str(e)}", "danger")
-    cursor.close()
+    finally:
+        cursor.close()
+
     return redirect(url_for("panel_incidencias_operativas"))
+
+
+# Actualizar incidencia operativa
+@app.route("/actualizar_incidencia_operativa", methods=['POST'])
+def actualizar_incidencia_operativa():
+    cursor = mysql.connection.cursor()
+    try:
+        id_incidencia = request.form["id_incidencia"]
+
+        try:
+            fecha_obj = datetime.strptime(request.form["fecha"], "%Y-%m-%d").date()
+        except ValueError:
+            flash("❌ Fecha inválida. Usa formato YYYY-MM-DD.", "danger")
+            return redirect(url_for("panel_incidencias_operativas"))
+
+        if fecha_obj < date(2000, 1, 1) or fecha_obj > date.today():
+            flash("❌ Fecha fuera del rango permitido (2000 hasta hoy).", "danger")
+            return redirect(url_for("panel_incidencias_operativas"))
+
+        mysql.connection.begin()
+
+        cursor.execute("""
+            UPDATE incidencia
+            SET fecha=%s, descripcion=%s, estado=%s
+            WHERE id_incidencia=%s
+        """, (
+            fecha_obj,
+            request.form["descripcion"],
+            request.form["estado"],
+            id_incidencia
+        ))
+
+        requiere_seguro = 1 if request.form.get("requiere_seguro") == "on" else 0
+        costo = request.form.get("costo") or 0
+
+        cursor.execute("""
+            UPDATE incidencia_operativa
+            SET gravedad=%s, costo=%s, requiere_seguro=%s
+            WHERE id_incidencia=%s
+        """, (
+            request.form["gravedad"],
+            costo,
+            requiere_seguro,
+            id_incidencia
+        ))
+
+        mysql.connection.commit()
+        flash("✔ Incidencia operativa actualizada.", "success")
+    except Exception as e:
+        mysql.connection.rollback()
+        flash(f"❌ Error: {str(e)}", "danger")
+    finally:
+        cursor.close()
+
+    return redirect(url_for("panel_incidencias_operativas"))
+
 
 # Eliminar incidencia operativa
 @app.route("/eliminar_incidencia_operativa/<int:id_incidencia>", methods=['GET'])
@@ -952,9 +1103,10 @@ def eliminar_incidencia_operativa(id_incidencia):
     except Exception as e:
         mysql.connection.rollback()
         flash(f"❌ Error: {str(e)}", "danger")
-    cursor.close()
-    return redirect(url_for("panel_incidencias_operativas"))
+    finally:
+        cursor.close()
 
+    return redirect(url_for("panel_incidencias_operativas"))
 
 
 

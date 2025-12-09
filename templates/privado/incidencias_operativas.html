@@ -4,7 +4,7 @@
 
 {% block content %}
 
-<h1>🛠️ Incidencias Operativas</h1>
+<h1>🚨 Incidencias Operativas</h1>
 
 {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
@@ -14,6 +14,7 @@
     {% endif %}
 {% endwith %}
 
+<!-- Botón Nueva Incidencia -->
 <section style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
     <a href="{{ url_for('panel_incidencias_operativas', nuevo_incidencia='true') }}#modal-nueva" class="btn btn-primary">
         ➕ Nueva Incidencia Operativa
@@ -22,15 +23,18 @@
 
 <hr>
 
+<!-- Tabla de incidencias -->
 <section>
+    <h2>Incidencias Registradas</h2>
     <table border="1" width="100%" cellpadding="6">
         <tr style="background: #f0f0f0;">
             <th>Fecha</th>
             <th>Descripción</th>
             <th>Gravedad</th>
             <th>Costo</th>
+            <th>Requiere Seguro</th>
             <th>Estado</th>
-            <th>Acciones</th>
+            <th style="text-align:right;">Acciones</th>
         </tr>
 
         {% for inc in incidencias %}
@@ -39,6 +43,7 @@
             <td>{{ inc.descripcion }}</td>
             <td>{{ inc.gravedad }}</td>
             <td>{{ inc.costo }}</td>
+            <td>{{ 'Sí' if inc.requiere_seguro else 'No' }}</td>
             <td>{{ inc.estado }}</td>
             <td style="text-align:right;">
                 <a href="{{ url_for('panel_incidencias_operativas', editar=inc.id_incidencia) }}#modal-editar" class="btn-sm">✏️ Editar</a>
@@ -48,12 +53,72 @@
         </tr>
         {% else %}
         <tr>
-            <td colspan="6" style="text-align:center;">⚠ No hay incidencias operativas.</td>
+            <td colspan="7" style="text-align:center;">⚠ No hay incidencias operativas.</td>
         </tr>
         {% endfor %}
     </table>
 </section>
 
-{# Modal para crear/editar operativa similar al ejemplo de cobradores #}
+<hr style="margin-top: 40px; border-color: #333;">
+
+{# ===================== NUEVA INCIDENCIA ===================== #}
+{% if 'nuevo_incidencia' in request.args %}
+<div id="modal-nueva" style="border:2px solid green; padding:20px;">
+    <h2>➕ Registrar Nueva Incidencia Operativa</h2>
+    <form method="post" action="{{ url_for('registrar_incidencia_operativa') }}">
+        <label>Fecha</label>
+        <input type="date" name="fecha" max="{{ hoy }}" required>
+        <label>Descripción</label>
+        <textarea name="descripcion" rows="3" required></textarea>
+        <label>Gravedad</label>
+        <input type="text" name="gravedad" required>
+        <label>Costo</label>
+        <input type="number" step="0.01" name="costo">
+        <label>Requiere Seguro</label>
+        <input type="checkbox" name="requiere_seguro">
+        <label>Estado</label>
+        <select name="estado" required>
+            <option value="Pendiente">Pendiente</option>
+            <option value="Resuelta">Resuelta</option>
+            <option value="Cancelada">Cancelada</option>
+        </select>
+
+        <br><br>
+        <button type="submit">Guardar</button>
+        <a href="{{ url_for('panel_incidencias_operativas') }}" class="btn-sm">Cancelar</a>
+    </form>
+</div>
+{% endif %}
+
+{# ===================== EDITAR INCIDENCIA ===================== #}
+{% if editar_incidencia %}
+<div id="modal-editar" style="border:2px solid orange; padding:20px;">
+    <h2>✏️ Editar Incidencia Operativa</h2>
+    <form method="post" action="{{ url_for('actualizar_incidencia_operativa') }}">
+        <input type="hidden" name="id_incidencia" value="{{ editar_incidencia.id_incidencia }}">
+
+        <label>Fecha</label>
+        <input type="date" name="fecha" value="{{ editar_incidencia.fecha }}" max="{{ hoy }}" required>
+        <label>Descripción</label>
+        <textarea name="descripcion" rows="3" required>{{ editar_incidencia.descripcion }}</textarea>
+        <label>Gravedad</label>
+        <input type="text" name="gravedad" value="{{ editar_incidencia.gravedad }}" required>
+        <label>Costo</label>
+        <input type="number" step="0.01" name="costo" value="{{ editar_incidencia.costo }}">
+        <label>Requiere Seguro</label>
+        <input type="checkbox" name="requiere_seguro" {% if editar_incidencia.requiere_seguro %}checked{% endif %}>
+        <label>Estado</label>
+        <select name="estado" required>
+            <option value="Pendiente" {% if editar_incidencia.estado=='Pendiente' %}selected{% endif %}>Pendiente</option>
+            <option value="Resuelta" {% if editar_incidencia.estado=='Resuelta' %}selected{% endif %}>Resuelta</option>
+            <option value="Cancelada" {% if editar_incidencia.estado=='Cancelada' %}selected{% endif %}>Cancelada</option>
+        </select>
+
+        <br><br>
+        <button type="submit">Actualizar</button>
+        <a href="{{ url_for('panel_incidencias_operativas') }}" class="btn-sm">Cancelar</a>
+    </form>
+</div>
+{% endif %}
 
 {% endblock %}
