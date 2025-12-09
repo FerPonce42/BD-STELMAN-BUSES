@@ -1,29 +1,28 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_mysqldb import MySQL
 from config import Config
-from datetime import datetime
 import MySQLdb.cursors
 from datetime import datetime, date
-# -----------------------------------------
+#=====================================================
 # CONFIG GENERAL
-# -----------------------------------------
+#=====================================================
 app = Flask(__name__)
 app.config.from_object(Config)
 app.secret_key = "STEELMAN_SUPER_KEY_2025"
 mysql = MySQL(app)
 
 
-# =====================================================
+#=====================================================
 # CONTEXT PROCESSOR (Año dinámico)
-# =====================================================
+#=====================================================
 @app.context_processor
 def inject_current_year():
     return {'current_year': datetime.now().year}
 
 
-# =====================================================
+#=====================================================
 # PÁGINAS PÚBLICAS
-# =====================================================
+#=====================================================
 @app.route('/')
 def index():
     return render_template('publico/index.html')
@@ -48,9 +47,9 @@ def contacto():
     return render_template('publico/contacto.html')
 
 
-# =====================================================
-# LOGIN / AUTH (Restaurado)
-# =====================================================
+#=====================================================
+# LOGIN / AUTENTICACIÓN 
+#=====================================================
 @app.route('/login', methods=['GET','POST'])
 def login():
     if request.method == 'POST':
@@ -82,9 +81,14 @@ def login():
     return render_template('autenticacion/login.html')
 
 
-# =====================================================
-# PANEL PRIVADO - DASHBOARD (Restaurado)
-# =====================================================
+
+
+
+
+
+#=====================================================
+# PANEL PRIVADO - DASHBOARD 
+#=====================================================
 @app.route('/panel')
 def panel():
     if 'usuario' not in session:
@@ -99,9 +103,9 @@ def panel():
         kpi_recaudacion="S/. 1500"
     )
 
-# =====================================================
-# MODULOS DEL SIDEBAR (SINGLE-PAGE CRUD)
-# =====================================================
+#=====================================================
+# MODULOS DE BUSES
+#=====================================================
 
 @app.route("/panel/buses", methods=["GET", "POST"])
 def panel_buses():
@@ -111,18 +115,18 @@ def panel_buses():
     id_supervisor_logueado = session['id']
     cursor = mysql.connection.cursor()
     
-    # 0. OBTENER ROL DEL SUPERVISOR (NUEVO: Necesario para controlar permisos)
+
     cursor.execute("SELECT tipo_supervisor FROM supervisor WHERE id_empleado = %s", (id_supervisor_logueado,))
     rol_data = cursor.fetchone()
     rol_supervisor = rol_data['tipo_supervisor'] if rol_data else None
     
-    # Inicializar variables que se pasarán a la plantilla
+
     buses = []
     modelos = []
     id_ruta_asignada = None
-    bus_a_editar = None # Contendrá los datos del bus si se activa el modo de edición
+    bus_a_editar = None 
 
-    # 1. OBTENER LA ID DE LA RUTA ASIGNADA AL SUPERVISOR
+
     cursor.execute("""
         SELECT sr.id_ruta 
         FROM supervisor_ruta sr
@@ -136,18 +140,17 @@ def panel_buses():
     else:
         id_ruta_asignada = resultado_ruta['id_ruta']
 
-    # --- 2. MANEJO DE POST (INSERTAR O ACTUALIZAR) ---
+
     if request.method == "POST":
         placa = request.form.get("placa")
         id_modelo_bus = request.form.get("id_modelo_bus")
         anio = request.form.get("anio") 
-        revision = request.form.get("ultima_revision") # Campo usado en la edición (solo visible para General)
-        id_bus_editado = request.form.get("id_bus_editado") # ID oculto si es una edición
+        revision = request.form.get("ultima_revision") 
+        id_bus_editado = request.form.get("id_bus_editado") 
 
         if id_bus_editado:
-            # LÓGICA DE ACTUALIZACIÓN (UPDATE)
             
-            # **1. Re-validación de propiedad (CRÍTICO)**
+            
             cursor.execute("""
                 SELECT b.id_bus
                 FROM bus b
@@ -163,7 +166,7 @@ def panel_buses():
                 flash("❌ Error de seguridad: Intento de editar un bus no asignado a tu ruta.", "danger")
             else:
                 try:
-                    # Query base: Siempre actualiza Placa, Año y Modelo
+                    
                     update_query = """
                         UPDATE bus 
                         SET placa = %s, 
@@ -172,12 +175,12 @@ def panel_buses():
                     """
                     update_params = [placa, anio, id_modelo_bus]
 
-                    # CONDICIONAL: Solo actualiza ultima_revision si el supervisor es 'General'
+                   
                     if rol_supervisor == 'General':
                         update_query += ", ultima_revision = %s"
                         update_params.append(revision)
                     
-                    # Finalizar query
+            
                     update_query += " WHERE id_bus = %s"
                     update_params.append(id_bus_editado)
                     
@@ -190,7 +193,7 @@ def panel_buses():
                     flash(f"❌ Error al editar el bus: {str(e)}", "danger")
 
         else:
-            # LÓGICA DE INSERCIÓN (INSERT)
+        
             if not id_ruta_asignada:
                 flash("❌ No se puede registrar un bus sin tener una ruta asignada", "danger")
             else:
@@ -201,13 +204,13 @@ def panel_buses():
                     flash("❌ Esa placa ya está registrada", "danger")
                 else:
                     try:
-                        # 3a. Insertar el nuevo bus
+                        
                         cursor.execute("""
                             INSERT INTO bus (placa, año_fabricacion, id_modelo_bus, id_almacen)
                             VALUES (%s, %s, %s, 1)
                         """, (placa, anio, id_modelo_bus))
                         
-                        # 3b. Asignar el nuevo bus a la ruta del supervisor
+                       
                         cursor.execute("""
                             INSERT INTO bus_ruta (id_bus, id_ruta, fecha_asignacion)
                             VALUES (LAST_INSERT_ID(), %s, CURDATE())
@@ -219,10 +222,8 @@ def panel_buses():
                         mysql.connection.rollback()
                         flash(f"❌ Error al registrar el bus: {str(e)}", "danger")
 
-    # --- 3. MANEJO DE GET (MOSTRAR DATOS Y FORMULARIOS) ---
     if id_ruta_asignada:
         
-        # Consulta de modelos: Devolvemos el nombre del modelo y su marca 
         cursor.execute("""
             SELECT 
                 mb.id_modelo_bus AS id, 
@@ -234,7 +235,6 @@ def panel_buses():
         """)
         modelos = cursor.fetchall()
 
-        # Consulta de buses
         cursor.execute("""
             SELECT 
                 b.id_bus, 
@@ -252,11 +252,11 @@ def panel_buses():
         """, (id_ruta_asignada,))
         buses = cursor.fetchall()
         
-        # Modo de Edición: Si hay un ID en el URL (ej: /panel/buses?id_editar=5)
+
         id_bus_editar = request.args.get('id_editar', type=int)
 
         if id_bus_editar:
-            # **Re-validación de propiedad (CRÍTICO)**
+   
             cursor.execute("""
                 SELECT b.id_bus, b.placa, b.año_fabricacion, b.id_modelo_bus, b.ultima_revision
                 FROM bus b
@@ -271,7 +271,7 @@ def panel_buses():
             bus_a_editar_data = cursor.fetchone()
             
             if bus_a_editar_data:
-                # Si el bus es válido y es de su ruta, lo pasamos al template
+              
                 bus_a_editar = bus_a_editar_data
             else:
                  flash("❌ El bus solicitado no existe o no está en tu ruta activa.", "danger")
@@ -279,25 +279,28 @@ def panel_buses():
 
     cursor.close()
 
-    # 'bus_a_editar' se usa para activar el modal de edición en el template
-    # Se pasa el rol para control de permisos en el HTML
+ 
     return render_template("privado/buses.html", 
                            buses=buses, 
                            modelos=modelos, 
                            bus_a_editar=bus_a_editar,
-                           rol_supervisor=rol_supervisor) # <--- ¡IMPORTANTE!
+                           rol_supervisor=rol_supervisor)
 
+
+###############################################
+############# ELIMINAR BOTON BUSES#############
+###############################################
 
 @app.route("/panel/buses/eliminar/<int:id_bus>")
 def panel_buses_eliminar(id_bus):
     if 'usuario' not in session:
         return redirect(url_for('login'))
     
-    # ... (el resto de la función es idéntico a tu versión y funciona correctamente)
+
     id_supervisor_logueado = session['id']
     cursor = mysql.connection.cursor()
 
-    # 1. VERIFICACIÓN DE RUTA (Seguridad)
+   
     cursor.execute("""
         SELECT b.id_bus
         FROM bus b
@@ -315,7 +318,7 @@ def panel_buses_eliminar(id_bus):
         flash("❌ Acceso denegado. El bus no está asignado a tu ruta activa.", "danger")
     else:
         try:
-            # Eliminación Lógica: Desasignación de la ruta del supervisor
+            
             cursor.execute("""
                 UPDATE bus_ruta
                 SET fecha_desasignacion = CURDATE()
@@ -333,13 +336,10 @@ def panel_buses_eliminar(id_bus):
 
 
 
-# app.py (Secciones de código a reemplazar o añadir)
 
-# app.py (Reemplaza las siguientes funciones en tu archivo existente)
-
-# ==============================================================================
-# PANEL DE GESTIÓN (Ruta Principal: Choferes Filtrados + Choferes Disponibles)
-# ==============================================================================
+#==============================================================================
+# MODULO DEL PERSONAL
+#==============================================================================
 
 @app.route("/panel/personal", methods=['GET'])
 def panel_personal():
@@ -349,6 +349,10 @@ def panel_personal():
     return render_template("privado/personal.html")
 
 
+######################################################
+############# INTERFAZ PARA LOS CHOFERES #############
+######################################################
+
 @app.route("/panel/personal/choferes", methods=['GET'])
 def panel_personal_choferes():
     if 'usuario' not in session:
@@ -357,7 +361,7 @@ def panel_personal_choferes():
     cursor = mysql.connection.cursor()
     id_supervisor = session['id']
 
-    # RUTA ACTIVA
+ 
     cursor.execute("""
         SELECT id_ruta
         FROM supervisor_ruta
@@ -373,7 +377,7 @@ def panel_personal_choferes():
 
     id_ruta = row['id_ruta']
 
-    # LISTA DE CHOFERES
+  
     cursor.execute("""
         (
             SELECT e.id_empleado, p.nombre, p.apellido, p.dni,
@@ -409,7 +413,7 @@ def panel_personal_choferes():
 
     editar_personal = None
 
-    # EDITAR
+  
     if "editar" in request.args:
         cursor.execute("""
             SELECT e.id_empleado, p.nombre, p.apellido, p.dni, p.telefono,
@@ -423,7 +427,7 @@ def panel_personal_choferes():
         """, (request.args["editar"],))
         editar_personal = cursor.fetchone()
 
-    # ELIMINAR
+   
     if "eliminar" in request.args:
         try:
             mysql.connection.begin()
@@ -451,7 +455,9 @@ def panel_personal_choferes():
                            editar_personal=editar_personal)
 
 
-# ======================= REGISTRAR CHOFER =======================
+######################################################
+############# REGISTRAR CHOFERES #####################
+######################################################
 
 @app.route("/registrar_personal_chofer", methods=['POST'])
 def registrar_personal_chofer():
@@ -460,7 +466,7 @@ def registrar_personal_chofer():
     try:
         mysql.connection.begin()
 
-        # persona
+        
         cursor.execute("""
             INSERT INTO persona(nombre, apellido, dni, telefono)
             VALUES (%s, %s, %s, %s)
@@ -472,7 +478,7 @@ def registrar_personal_chofer():
         ))
         id_persona = cursor.lastrowid
 
-        # empleado
+        
         cursor.execute("""
             INSERT INTO empleado(id_persona, sueldo, fecha_ingreso)
             VALUES (%s, %s, %s)
@@ -483,7 +489,7 @@ def registrar_personal_chofer():
         ))
         id_empleado = cursor.lastrowid
 
-        # chofer
+        
         cursor.execute("""
             INSERT INTO chofer(id_empleado, nro_licencia, años_experiencia,
                                id_tipo_licencia, historial_infracciones)
@@ -507,6 +513,11 @@ def registrar_personal_chofer():
     return redirect(url_for("panel_personal_choferes"))
 
 
+
+######################################################
+############# ACTUALIZAR CHOFERES ####################
+######################################################
+
 @app.route("/actualizar_personal_chofer", methods=['POST'])
 def actualizar_personal_chofer():
     cursor = mysql.connection.cursor()
@@ -514,7 +525,7 @@ def actualizar_personal_chofer():
         mysql.connection.begin()
         id_empleado = request.form["id_empleado"]
 
-        # actualizar persona
+        
         cursor.execute("""
             UPDATE persona p
             JOIN empleado e ON p.id_persona=e.id_persona
@@ -528,14 +539,14 @@ def actualizar_personal_chofer():
             id_empleado
         ))
 
-        # actualizar sueldo
+        
         cursor.execute("""
             UPDATE empleado
             SET sueldo=%s
             WHERE id_empleado=%s
         """, (request.form["sueldo"], id_empleado))
 
-        # actualizar chofer
+        
         cursor.execute("""
             UPDATE chofer
             SET nro_licencia=%s,
@@ -562,7 +573,11 @@ def actualizar_personal_chofer():
     return redirect(url_for("panel_personal_choferes"))
 
 
-## COBRADORES
+
+
+######################################################
+############# INTERFAZ PARA COBRADORES ###############
+######################################################
 
 @app.route("/panel/personal/cobradores", methods=['GET'])
 def panel_personal_cobradores():
@@ -572,7 +587,7 @@ def panel_personal_cobradores():
     cursor = mysql.connection.cursor()
     id_supervisor = session['id']
 
-    # detectar ruta activa
+   
     cursor.execute("""
         SELECT id_ruta
         FROM supervisor_ruta
@@ -590,7 +605,7 @@ def panel_personal_cobradores():
 
     id_ruta = row['id_ruta']
 
-    # obtener cobradores vinculados a la ruta o libres sin asignación
+    
     cursor.execute("""
         (
             SELECT e.id_empleado, p.nombre, p.apellido, p.dni, p.telefono, e.sueldo
@@ -617,14 +632,14 @@ def panel_personal_cobradores():
     
     cobradores = cursor.fetchall()
 
-    # obtener idiomas disponibles
+    
     cursor.execute("SELECT id_idioma, nombre FROM idioma")
     lista_idiomas = cursor.fetchall()
 
     editar_personal = None
     idiomas_asociados = []
 
-    # editar
+    
     if "editar" in request.args:
         cursor.execute("""
             SELECT e.id_empleado, p.nombre, p.apellido, p.dni, p.telefono,
@@ -643,7 +658,7 @@ def panel_personal_cobradores():
         """, (editar_personal["id_empleado"],))
         idiomas_asociados = [row["id_idioma"] for row in cursor.fetchall()]
 
-    # eliminar
+    
     if "eliminar" in request.args:
         try:
             mysql.connection.begin()
@@ -665,7 +680,7 @@ def panel_personal_cobradores():
 
     cursor.close()
 
-    # agregar idiomas a cada cobrador para mostrar
+    
     for c in cobradores:
         cursor2 = mysql.connection.cursor()
         cursor2.execute("""
@@ -686,6 +701,10 @@ def panel_personal_cobradores():
                            idiomas_asociados=idiomas_asociados)
 
 
+######################################################
+############# REGISTRAR COBRADORES ###################
+######################################################
+
 @app.route("/registrar_personal_cobrador", methods=['POST'])
 def registrar_personal_cobrador():
     cursor = mysql.connection.cursor()
@@ -693,7 +712,6 @@ def registrar_personal_cobrador():
     try:
         mysql.connection.begin()
 
-        # persona
         cursor.execute("""
             INSERT INTO persona(nombre, apellido, dni, telefono)
             VALUES (%s, %s, %s, %s)
@@ -705,7 +723,6 @@ def registrar_personal_cobrador():
         ))
         id_persona = cursor.lastrowid
 
-        # empleado
         cursor.execute("""
             INSERT INTO empleado(id_persona, sueldo, fecha_ingreso, tipo_empleado)
             VALUES (%s, %s, %s, 'COBRADOR')
@@ -716,13 +733,13 @@ def registrar_personal_cobrador():
         ))
         id_empleado = cursor.lastrowid
 
-        # cobrador
+      
         cursor.execute("""
             INSERT INTO cobrador(id_empleado)
             VALUES (%s)
         """, (id_empleado,))
 
-        # registrar idiomas seleccionados
+        
         idiomas = request.form.getlist("idiomas")
         for id_idioma in idiomas:
             cursor.execute("""
@@ -741,6 +758,10 @@ def registrar_personal_cobrador():
     return redirect(url_for("panel_personal_cobradores"))
 
 
+######################################################
+############# ACTUALIZAR COBRADORES ##################
+######################################################
+
 @app.route("/actualizar_personal_cobrador", methods=['POST'])
 def actualizar_personal_cobrador():
     cursor = mysql.connection.cursor()
@@ -750,7 +771,6 @@ def actualizar_personal_cobrador():
 
         id_empleado = request.form["id_empleado"]
 
-        # actualizar persona
         cursor.execute("""
             UPDATE persona p
             JOIN empleado e ON p.id_persona=e.id_persona
@@ -764,14 +784,13 @@ def actualizar_personal_cobrador():
             id_empleado
         ))
 
-        # actualizar empleado sueldo
         cursor.execute("""
             UPDATE empleado
             SET sueldo=%s
             WHERE id_empleado=%s
         """, (request.form["sueldo"], id_empleado))
 
-        # actualizar idiomas
+        
         cursor.execute("DELETE FROM cobrador_idioma WHERE id_empleado=%s", (id_empleado,))
         idiomas = request.form.getlist("idiomas")
         for id_idioma in idiomas:
@@ -791,9 +810,12 @@ def actualizar_personal_cobrador():
     return redirect(url_for("panel_personal_cobradores"))
 
 
-# =============================================
-# PANEL GENERAL DE INCIDENCIAS
-# =============================================
+
+
+
+#=============================================
+# MODULO DE INCIDENCIAS
+#=============================================
 @app.route("/panel/incidencias", methods=['GET'])
 def panel_incidencias():
     if 'usuario' not in session:
@@ -801,9 +823,12 @@ def panel_incidencias():
     return render_template("privado/incidencias.html")
 
 
-# =============================================
-# INCIDENCIAS DISCIPLINARIAS
-# =============================================
+
+
+######################################################
+############# INCIDENCIAS DISCIPLINARIAS #############
+######################################################
+
 @app.route("/panel/incidencias/disciplinarias", methods=['GET'])
 def panel_incidencias_disciplinarias():
     if 'usuario' not in session:
@@ -812,7 +837,7 @@ def panel_incidencias_disciplinarias():
     cursor = mysql.connection.cursor()
     id_supervisor = session['id']
 
-    # Detectar ruta activa del supervisor
+ 
     cursor.execute("""
         SELECT id_ruta
         FROM supervisor_ruta
@@ -821,7 +846,7 @@ def panel_incidencias_disciplinarias():
     row = cursor.fetchone()
     id_ruta = row['id_ruta'] if row else None
 
-    # Obtener incidencias disciplinarias
+
     if id_ruta:
         cursor.execute("""
             SELECT i.id_incidencia, i.fecha, i.descripcion, i.estado,
@@ -840,7 +865,7 @@ def panel_incidencias_disciplinarias():
         """)
     incidencias = cursor.fetchall()
 
-    # Capturar parámetro "editar" para rellenar modal
+ 
     editar_id = request.args.get('editar')
     editar_incidencia = None
     if editar_id:
@@ -862,7 +887,11 @@ def panel_incidencias_disciplinarias():
                            editar_incidencia=editar_incidencia)
 
 
-# Crear nueva incidencia disciplinaria
+
+################################################################
+############# REGISTRAR INCIDENCIAS DISCIPLINARIAS #############
+################################################################
+
 @app.route("/registrar_incidencia_disciplinaria", methods=['POST'])
 def registrar_incidencia_disciplinaria():
     cursor = mysql.connection.cursor()
@@ -909,7 +938,11 @@ def registrar_incidencia_disciplinaria():
     return redirect(url_for("panel_incidencias_disciplinarias"))
 
 
-# Actualizar incidencia disciplinaria
+
+#################################################################
+############# ACTUALIZAR INCIDENCIAS DISCIPLINARIAS #############
+#################################################################
+
 @app.route("/actualizar_incidencia_disciplinaria", methods=['POST'])
 def actualizar_incidencia_disciplinaria():
     cursor = mysql.connection.cursor()
@@ -960,7 +993,10 @@ def actualizar_incidencia_disciplinaria():
     return redirect(url_for("panel_incidencias_disciplinarias"))
 
 
-# Eliminar incidencia disciplinaria
+###############################################################
+############# ELIMINAR INCIDENCIAS DISCIPLINARIAS #############
+###############################################################
+
 @app.route("/eliminar_incidencia_disciplinaria/<int:id_incidencia>", methods=['GET'])
 def eliminar_incidencia_disciplinaria(id_incidencia):
     cursor = mysql.connection.cursor()
@@ -978,9 +1014,14 @@ def eliminar_incidencia_disciplinaria(id_incidencia):
 
     return redirect(url_for("panel_incidencias_disciplinarias"))
 
-# =============================================
+
+
+
+
+
+#=============================================
 # INCIDENCIAS OPERATIVAS
-# =============================================
+#=============================================
 @app.route("/panel/incidencias/operativas", methods=['GET'])
 def panel_incidencias_operativas():
     if 'usuario' not in session:
@@ -989,7 +1030,6 @@ def panel_incidencias_operativas():
     cursor = mysql.connection.cursor()
     id_supervisor = session['id']
 
-    # Detectar ruta activa del supervisor
     cursor.execute("""
         SELECT id_ruta
         FROM supervisor_ruta
@@ -998,7 +1038,7 @@ def panel_incidencias_operativas():
     row = cursor.fetchone()
     id_ruta = row['id_ruta'] if row else None
 
-    # Obtener incidencias operativas
+    
     if id_ruta:
         cursor.execute("""
             SELECT i.id_incidencia, i.fecha, i.descripcion, i.estado,
@@ -1017,7 +1057,7 @@ def panel_incidencias_operativas():
         """)
     incidencias = cursor.fetchall()
 
-    # Capturar parámetro "editar" para rellenar modal
+    
     editar_id = request.args.get('editar')
     editar_incidencia = None
     if editar_id:
@@ -1032,7 +1072,7 @@ def panel_incidencias_operativas():
 
     cursor.close()
 
-    # Pasar fecha actual para limitar input en HTML
+   
     return render_template("privado/incidencias_operativas.html",
                            incidencias=incidencias,
                            id_ruta=id_ruta,
@@ -1040,7 +1080,12 @@ def panel_incidencias_operativas():
                            editar_incidencia=editar_incidencia)
 
 
-# Crear nueva incidencia operativa
+
+
+############################################################
+############# REGISTRAR INCIDENCIAS OPERATIVAS #############
+############################################################
+
 @app.route("/registrar_incidencia_operativa", methods=['POST'])
 def registrar_incidencia_operativa():
     cursor = mysql.connection.cursor()
@@ -1091,7 +1136,11 @@ def registrar_incidencia_operativa():
     return redirect(url_for("panel_incidencias_operativas"))
 
 
-# Actualizar incidencia operativa
+
+#############################################################
+############# ACTUALIZAR INCIDENCIAS OPERATIVAS #############
+#############################################################
+
 @app.route("/actualizar_incidencia_operativa", methods=['POST'])
 def actualizar_incidencia_operativa():
     cursor = mysql.connection.cursor()
@@ -1146,7 +1195,13 @@ def actualizar_incidencia_operativa():
     return redirect(url_for("panel_incidencias_operativas"))
 
 
-# Eliminar incidencia operativa
+
+
+
+############################################################
+############# ELIMINAR INCIDENCIAS OPERATIVAS ##############
+############################################################
+
 @app.route("/eliminar_incidencia_operativa/<int:id_incidencia>", methods=['GET'])
 def eliminar_incidencia_operativa(id_incidencia):
     cursor = mysql.connection.cursor()
@@ -1167,11 +1222,13 @@ def eliminar_incidencia_operativa(id_incidencia):
 
 
 
-# =============================================
-# PANEL DE CAJA
-# =============================================
 
-# ===================== PANEL DE CAJA =====================
+
+
+#=============================================
+# PANEL DE CAJA
+#=============================================
+
 @app.route("/panel/caja", methods=['GET'])
 def panel_caja():
     if 'usuario' not in session:
@@ -1180,7 +1237,6 @@ def panel_caja():
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor) 
     id_supervisor = session['id']
 
-    # Ruta activa del supervisor
     cursor.execute("""
         SELECT id_ruta
         FROM supervisor_ruta
@@ -1192,7 +1248,7 @@ def panel_caja():
     cajas, empleados, buses = [], [], []
 
     if id_ruta:
-        # Historial de recaudaciones (No se modifica, filtra por c.id_ruta=%s)
+       
         cursor.execute("""
             SELECT c.id_caja, c.fecha, c.monto_recaudado, c.observacion,
                    e.id_empleado, p.nombre, p.apellido, b.id_bus, b.placa
@@ -1205,7 +1261,7 @@ def panel_caja():
         """, (id_ruta,))
         cajas = cursor.fetchall()
 
-        # ✅ CORRECCIÓN APLICADA AQUÍ: Cobradores de la ruta (Asignados a un bus de la ruta O sin ninguna asignación de bus)
+
         cursor.execute("""
             (
                 SELECT DISTINCT e.id_empleado, p.nombre, p.apellido
@@ -1230,7 +1286,7 @@ def panel_caja():
         """, (id_ruta,))
         empleados = cursor.fetchall()
 
-        # Buses de la ruta (No se modifica)
+       
         cursor.execute("""
             SELECT b.id_bus, b.placa
             FROM bus b
@@ -1243,20 +1299,25 @@ def panel_caja():
     hoy = datetime.today().strftime("%Y-%m-%d")
 
     return render_template("privado/caja.html",
-                           cajas=cajas,
+                           cajas=cajas, 
                            empleados=empleados,
                            buses=buses,
                            id_ruta=id_ruta,
                            editar_caja=None,
                            hoy=hoy)
 
-# ===================== REGISTRAR RECAUDACIÓN =====================
+
+
+
+#################################################
+############# REGISTRAR RECAUDACION #############
+#################################################
+
 @app.route("/registrar_caja", methods=['POST'])
 def registrar_caja():
     if 'usuario' not in session:
         return redirect(url_for('login'))
 
-    # ✅ CORRECCIÓN CLAVE: Usar DictCursor
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor) 
     id_supervisor = session['id']
 
@@ -1303,13 +1364,16 @@ def registrar_caja():
     return redirect(url_for("panel_caja"))
 
 
-# ===================== ELIMINAR RECAUDACIÓN =====================
+
+#################################################
+############# ELIMINAR RECAUDACION #############
+#################################################
+
 @app.route("/eliminar_caja/<int:id_caja>", methods=['GET'])
 def eliminar_caja(id_caja):
     if 'usuario' not in session:
         return redirect(url_for('login'))
 
-    # ✅ CORRECCIÓN CLAVE: Usar DictCursor
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor) 
     try:
         mysql.connection.begin()
@@ -1325,14 +1389,16 @@ def eliminar_caja(id_caja):
     return redirect(url_for("panel_caja"))
 
 
-# ===================== EDITAR RECAUDACIÓN =====================
-# ===================== EDITAR RECAUDACIÓN =====================
+
+#################################################
+############# EDITAR RECAUDACION ################
+#################################################
+
 @app.route("/editar_caja/<int:id_caja>", methods=['GET'])
 def editar_caja(id_caja):
     if 'usuario' not in session:
         return redirect(url_for('login'))
 
-    # ✅ CORRECCIÓN CLAVE: Usar DictCursor
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor) 
     id_supervisor = session['id']
 
@@ -1344,11 +1410,26 @@ def editar_caja(id_caja):
     row = cursor.fetchone()
     id_ruta = row['id_ruta'] if row else None
 
-    # Obtener recaudación
+    
     cursor.execute("SELECT * FROM caja WHERE id_caja=%s", (id_caja,))
     editar_caja = cursor.fetchone()
 
-    # ✅ CORRECCIÓN APLICADA AQUÍ: Cobradores de la ruta (Asignados a bus de la ruta O sin ninguna asignación)
+    
+    cajas = []
+    if id_ruta:
+        cursor.execute("""
+            SELECT c.id_caja, c.fecha, c.monto_recaudado, c.observacion,
+                   e.id_empleado, p.nombre, p.apellido, b.id_bus, b.placa
+            FROM caja c
+            JOIN empleado e ON c.id_empleado = e.id_empleado
+            JOIN persona p ON e.id_persona = p.id_persona
+            JOIN bus b ON c.id_bus = b.id_bus
+            WHERE c.id_ruta=%s
+            ORDER BY c.fecha DESC
+        """, (id_ruta,))
+        cajas = cursor.fetchall()
+    
+    
     cursor.execute("""
         (
             SELECT DISTINCT e.id_empleado, p.nombre, p.apellido
@@ -1370,10 +1451,9 @@ def editar_caja(id_caja):
             JOIN cobrador co ON e.id_empleado = co.id_empleado 
             WHERE e.id_empleado NOT IN (SELECT id_empleado FROM asignacion_bus)
         )
-    """, (id_ruta,)) # Solo se necesita pasar id_ruta una vez para el primer SELECT
+    """, (id_ruta,)) 
     empleados = cursor.fetchall()
 
-    # Buses de la ruta
     cursor.execute("""
         SELECT b.id_bus, b.placa
         FROM bus b
@@ -1386,20 +1466,24 @@ def editar_caja(id_caja):
     hoy = datetime.today().strftime("%Y-%m-%d")
 
     return render_template("privado/caja.html",
-                           cajas=[],
+                           cajas=cajas,
                            empleados=empleados,
                            buses=buses,
                            id_ruta=id_ruta,
                            editar_caja=editar_caja,
                            hoy=hoy)
 
-# ===================== ACTUALIZAR RECAUDACIÓN =====================
+
+
+##################################################
+############# ACTUALIZAR RECAUDACION #############
+##################################################
+
 @app.route("/actualizar_caja", methods=['POST'])
 def actualizar_caja():
     if 'usuario' not in session:
         return redirect(url_for('login'))
 
-    # ✅ CORRECCIÓN CLAVE: Usar DictCursor
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor) 
     try:
         id_caja = request.form["id_caja"]
@@ -1421,11 +1505,15 @@ def actualizar_caja():
 
     except Exception as e:
         mysql.connection.rollback()
-        flash(f"❌ Error: {str(e)}", "danger")
+        flash(f"❌ Error al actualizar: {str(e)}", "danger")
     finally:
         cursor.close()
 
     return redirect(url_for("panel_caja"))
+
+
+
+
 
 
 
@@ -1435,10 +1523,6 @@ def panel_rutas():
         return redirect(url_for('login'))
     return render_template("privado/rutas.html")
 
-
-
-
-
 @app.route("/panel/reportes")
 def panel_reportes():
     if 'usuario' not in session:
@@ -1446,9 +1530,9 @@ def panel_reportes():
     return render_template("privado/reportes.html")
 
 
-# =====================================================
-# LOGOUT
-# =====================================================
+#=====================================================
+# CERRAR SESION
+#=====================================================
 @app.route('/logout')
 def logout():
     session.clear()
@@ -1456,8 +1540,8 @@ def logout():
     return redirect(url_for('login'))
 
 
-# =====================================================
+#=====================================================
 # EJECUCIÓN DEL SERVIDOR
-# =====================================================
+#=====================================================
 if __name__ == '__main__':
     app.run(debug=True)
