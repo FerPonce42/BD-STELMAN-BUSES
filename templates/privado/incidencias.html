@@ -1,41 +1,67 @@
 {% extends 'privado/base.html' %}
 
-{% block title %}Incidencias | Stelman{% endblock %}
-
 {% block content %}
+<h1>⚠ Panel de Incidencias</h1>
 
-<h1>Gestión de Incidencias</h1>
-
-<section>
-    <h2>Listado</h2>
-    <table border="1" width="100%">
+<h2>Incidencias Disciplinarias</h2>
+{% if incidencias_disciplinarias %}
+<table border="1" cellpadding="5" cellspacing="0">
+    <thead>
         <tr>
-            <th>Fecha</th><th>Tipo</th><th>Estado</th><th>Acciones</th>
+            <th>ID</th>
+            <th>Fecha</th>
+            <th>Descripción</th>
+            <th>Estado</th>
+            <th>Tipo Disciplinaria</th>
+            <th>Sanción</th>
         </tr>
+    </thead>
+    <tbody>
+        {% for inc in incidencias_disciplinarias %}
         <tr>
-            <td>05/12/2025</td><td>Operativa</td><td>Abierta</td>
-            <td>
-                <button>Editar</button>
-                <button>Eliminar</button>
-            </td>
+            <td>{{ inc.id_incidencia }}</td>
+            <td>{{ inc.fecha }}</td>
+            <td>{{ inc.descripcion }}</td>
+            <td>{{ inc.estado }}</td>
+            <td>{{ inc.tipo_disciplinaria }}</td>
+            <td>{{ inc.sancion }}</td>
         </tr>
-    </table>
-</section>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No hay incidencias disciplinarias para tus rutas.</p>
+{% endif %}
 
-<section>
-    <h2>Registrar / Editar Incidencia</h2>
-    <form method="post">
-        <label>Descripción</label>
-        <textarea name="descripcion"></textarea>
-
-        <label>Tipo</label>
-        <select name="tipo">
-            <option>Operativa</option>
-            <option>Disciplinaria</option>
-        </select>
-
-        <button type="submit">Guardar</button>
-    </form>
-</section>
-
+<h2>Incidencias Operativas</h2>
+{% if incidencias_operativas %}
+<table border="1" cellpadding="5" cellspacing="0">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Fecha</th>
+            <th>Descripción</th>
+            <th>Estado</th>
+            <th>Gravedad</th>
+            <th>Costo</th>
+            <th>Requiere Seguro</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for inc in incidencias_operativas %}
+        <tr>
+            <td>{{ inc.id_incidencia }}</td>
+            <td>{{ inc.fecha }}</td>
+            <td>{{ inc.descripcion }}</td>
+            <td>{{ inc.estado }}</td>
+            <td>{{ inc.gravedad }}</td>
+            <td>{{ inc.costo or 'N/A' }}</td>
+            <td>{{ 'Sí' if inc.requiere_seguro else 'No' }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No hay incidencias operativas para tus rutas.</p>
+{% endif %}
 {% endblock %}

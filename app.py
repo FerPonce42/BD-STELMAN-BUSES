@@ -735,6 +735,90 @@ def actualizar_personal_cobrador():
     return redirect(url_for("panel_personal_cobradores"))
 
 
+#####
+# =====================================================
+# PANEL INCIDENCIAS
+# =====================================================
+@app.route("/panel/incidencias", methods=['GET'])
+def panel_incidencias():
+    if 'usuario' not in session:
+        flash("Debes iniciar sesión para ver este panel.", "warning")
+        return redirect(url_for('login'))
+
+    # Obtiene el ID del supervisor logueado
+    id_supervisor = session.get('id_empleado')
+
+    try:
+        cursor = mysql.connection.cursor()
+
+        # -----------------------------
+        # 1) Obtener rutas asignadas al supervisor
+        # -----------------------------
+        cursor.execute("""
+            SELECT id_ruta
+            FROM supervisor_ruta
+            WHERE id_empleado = %s
+        """, (id_supervisor,))
+        rutas = cursor.fetchall()
+        rutas_ids = [r['id_ruta'] for r in rutas]
+
+        if not rutas_ids:
+            incidencias_disciplinarias = []
+            incidencias_operativas = []
+        else:
+            # -----------------------------
+            # 2) Incidencias disciplinarias relacionadas a rutas supervisadas
+            # -----------------------------
+            format_strings = ','.join(['%s'] * len(rutas_ids))
+            query_disciplinaria = f"""
+                SELECT i.id_incidencia, i.fecha, i.descripcion, i.estado,
+                       d.tipo_disciplinaria, d.sancion
+                FROM incidencia i
+                INNER JOIN incidencia_disciplinaria d ON i.id_incidencia = d.id_incidencia
+                INNER JOIN bus_ruta br ON br.id_bus = (
+                    SELECT id_bus FROM asignacion_bus ab
+                    WHERE ab.fecha <= i.fecha
+                    ORDER BY ab.fecha DESC LIMIT 1
+                )
+                WHERE br.id_ruta IN ({format_strings})
+                ORDER BY i.fecha DESC
+            """
+            cursor.execute(query_disciplinaria, tuple(rutas_ids))
+            incidencias_disciplinarias = cursor.fetchall()
+
+            # -----------------------------
+            # 3) Incidencias operativas relacionadas a rutas supervisadas
+            # -----------------------------
+            query_operativa = f"""
+                SELECT i.id_incidencia, i.fecha, i.descripcion, i.estado,
+                       o.gravedad, o.costo, o.requiere_seguro
+                FROM incidencia i
+                INNER JOIN incidencia_operativa o ON i.id_incidencia = o.id_incidencia
+                INNER JOIN bus_ruta br ON br.id_bus = (
+                    SELECT id_bus FROM asignacion_bus ab
+                    WHERE ab.fecha <= i.fecha
+                    ORDER BY ab.fecha DESC LIMIT 1
+                )
+                WHERE br.id_ruta IN ({format_strings})
+                ORDER BY i.fecha DESC
+            """
+            cursor.execute(query_operativa, tuple(rutas_ids))
+            incidencias_operativas = cursor.fetchall()
+
+        cursor.close()
+
+        return render_template(
+            "privado/incidencias.html",
+            incidencias_disciplinarias=incidencias_disciplinarias,
+            incidencias_operativas=incidencias_operativas
+        )
+
+    except Exception as e:
+        flash(f"Ocurrió un error al cargar las incidencias: {str(e)}", "danger")
+        return redirect(url_for('panel_principal'))
+
+
+
 
 
 @app.route("/panel/rutas")
@@ -749,13 +833,6 @@ def panel_caja():
     if 'usuario' not in session:
         return redirect(url_for('login'))
     return render_template("privado/caja.html")
-
-
-@app.route("/panel/incidencias")
-def panel_incidencias():
-    if 'usuario' not in session:
-        return redirect(url_for('login'))
-    return render_template("privado/incidencias.html")
 
 
 @app.route("/panel/reportes")
