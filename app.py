@@ -346,6 +346,14 @@ def panel_personal():
     if 'usuario' not in session:
         return redirect(url_for('login'))
 
+    return render_template("privado/personal.html")
+
+
+@app.route("/panel/personal/choferes", methods=['GET'])
+def panel_personal_choferes():
+    if 'usuario' not in session:
+        return redirect(url_for('login'))
+
     cursor = mysql.connection.cursor()
     id_supervisor = session['id']
 
@@ -359,7 +367,7 @@ def panel_personal():
 
     if not row:
         cursor.close()
-        return render_template("privado/personal.html",
+        return render_template("privado/personal_choferes.html",
                                choferes_existentes=[], id_ruta=None,
                                tipos_licencia=[], editar_personal=None)
 
@@ -432,11 +440,11 @@ def panel_personal():
             flash(f"❌ Error: {str(e)}", "danger")
 
         cursor.close()
-        return redirect(url_for("panel_personal"))
+        return redirect(url_for("panel_personal_choferes"))
 
     cursor.close()
 
-    return render_template("privado/personal.html",
+    return render_template("privado/personal_choferes.html",
                            choferes_existentes=choferes,
                            id_ruta=id_ruta,
                            tipos_licencia=tipos_licencia,
@@ -445,8 +453,8 @@ def panel_personal():
 
 # ======================= REGISTRAR CHOFER =======================
 
-@app.route("/registrar_personal", methods=['POST'])
-def registrar_personal():
+@app.route("/registrar_personal_chofer", methods=['POST'])
+def registrar_personal_chofer():
     cursor = mysql.connection.cursor()
 
     try:
@@ -496,7 +504,16 @@ def registrar_personal():
         flash(f"❌ Error: {str(e)}", "danger")
 
     cursor.close()
-    return redirect(url_for("panel_personal"))
+    return redirect(url_for("panel_personal_choferes"))
+
+
+
+@app.route("/panel/personal/cobradores", methods=['GET'])
+def panel_personal_cobradores():
+    if 'usuario' not in session:
+        return redirect(url_for('login'))
+
+    return render_template("privado/personal_cobradores.html")
 
 
 
