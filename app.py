@@ -1189,6 +1189,7 @@ def panel_incidencias_operativas():
     cursor = mysql.connection.cursor()
     id_supervisor = session['id']
 
+    # Obtener la ruta del supervisor
     cursor.execute("""
         SELECT id_ruta
         FROM supervisor_ruta
@@ -1197,28 +1198,32 @@ def panel_incidencias_operativas():
     row = cursor.fetchone()
     id_ruta = row['id_ruta'] if row else None
 
-    
+    # ========== NUEVO: obtener buses asignados a la ruta mediante bus_ruta ==========
+    buses = []
     if id_ruta:
         cursor.execute("""
-            SELECT i.id_incidencia, i.fecha, i.descripcion, i.estado,
-                   io.gravedad, io.costo, io.requiere_seguro
-            FROM incidencia i
-            JOIN incidencia_operativa io ON i.id_incidencia=io.id_incidencia
-            ORDER BY i.fecha DESC
-        """)
-    else:
-        cursor.execute("""
-            SELECT i.id_incidencia, i.fecha, i.descripcion, i.estado,
-                   io.gravedad, io.costo, io.requiere_seguro
-            FROM incidencia i
-            JOIN incidencia_operativa io ON i.id_incidencia=io.id_incidencia
-            ORDER BY i.fecha DESC
-        """)
+            SELECT b.id_bus, b.placa
+            FROM bus b
+            JOIN bus_ruta br ON b.id_bus = br.id_bus
+            WHERE br.id_ruta = %s
+              AND (br.fecha_desasignacion IS NULL OR br.fecha_desasignacion >= CURDATE())
+        """, (id_ruta,))
+        buses = cursor.fetchall()
+
+    # ========== listar incidencias operativas ==========
+    cursor.execute("""
+        SELECT i.id_incidencia, i.fecha, i.descripcion, i.estado,
+               io.gravedad, io.costo, io.requiere_seguro
+        FROM incidencia i
+        JOIN incidencia_operativa io ON i.id_incidencia=io.id_incidencia
+        ORDER BY i.fecha DESC
+    """)
     incidencias = cursor.fetchall()
 
-    
+    # ========== edición ==========
     editar_id = request.args.get('editar')
     editar_incidencia = None
+
     if editar_id:
         cursor.execute("""
             SELECT i.id_incidencia, i.fecha, i.descripcion, i.estado,
@@ -1231,14 +1236,14 @@ def panel_incidencias_operativas():
 
     cursor.close()
 
-   
-    return render_template("privado/incidencias_operativas.html",
-                           incidencias=incidencias,
-                           id_ruta=id_ruta,
-                           hoy=date.today().isoformat(),
-                           editar_incidencia=editar_incidencia)
-
-
+    return render_template(
+        "privado/incidencias_operativas.html",
+        incidencias=incidencias,
+        id_ruta=id_ruta,
+        buses=buses,  # ← así el template puede mostrar los buses de la ruta
+        hoy=date.today().isoformat(),
+        editar_incidencia=editar_incidencia
+    )
 
 
 ############################################################
@@ -1261,19 +1266,22 @@ def registrar_incidencia_operativa():
 
         mysql.connection.begin()
 
+        # Insertar incidencia base
         cursor.execute("""
-            INSERT INTO incidencia(fecha, descripcion, estado)
-            VALUES (%s, %s, %s)
+            INSERT INTO incidencia(fecha, descripcion, estado, id_bus)
+            VALUES (%s, %s, %s, %s)
         """, (
             fecha_obj,
             request.form["descripcion"],
-            request.form["estado"]
+            request.form["estado"],
+            request.form.get("id_bus")  # se elige de la lista de buses
         ))
         id_incidencia = cursor.lastrowid
 
         requiere_seguro = 1 if request.form.get("requiere_seguro") == "on" else 0
         costo = request.form.get("costo") or 0
 
+        # Insertar incidencia operativa
         cursor.execute("""
             INSERT INTO incidencia_operativa(id_incidencia, gravedad, costo, requiere_seguro)
             VALUES (%s, %s, %s, %s)
@@ -1293,7 +1301,6 @@ def registrar_incidencia_operativa():
         cursor.close()
 
     return redirect(url_for("panel_incidencias_operativas"))
-
 
 
 #############################################################
@@ -1320,12 +1327,13 @@ def actualizar_incidencia_operativa():
 
         cursor.execute("""
             UPDATE incidencia
-            SET fecha=%s, descripcion=%s, estado=%s
+            SET fecha=%s, descripcion=%s, estado=%s, id_bus=%s
             WHERE id_incidencia=%s
         """, (
             fecha_obj,
             request.form["descripcion"],
             request.form["estado"],
+            request.form.get("id_bus"),
             id_incidencia
         ))
 
@@ -1354,9 +1362,6 @@ def actualizar_incidencia_operativa():
     return redirect(url_for("panel_incidencias_operativas"))
 
 
-
-
-
 ############################################################
 ############# ELIMINAR INCIDENCIAS OPERATIVAS ##############
 ############################################################
@@ -1377,8 +1382,6 @@ def eliminar_incidencia_operativa(id_incidencia):
         cursor.close()
 
     return redirect(url_for("panel_incidencias_operativas"))
-
-
 
 
 

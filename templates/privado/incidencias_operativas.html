@@ -28,6 +28,7 @@
     <h2>Incidencias Registradas</h2>
     <table border="1" width="100%" cellpadding="6">
         <tr style="background: #f0f0f0;">
+            <th>Bus</th>
             <th>Fecha</th>
             <th>Descripción</th>
             <th>Gravedad</th>
@@ -39,6 +40,7 @@
 
         {% for inc in incidencias %}
         <tr>
+            <td>{{ inc.id_bus }}</td>
             <td>{{ inc.fecha }}</td>
             <td>{{ inc.descripcion }}</td>
             <td>{{ inc.gravedad }}</td>
@@ -53,7 +55,7 @@
         </tr>
         {% else %}
         <tr>
-            <td colspan="7" style="text-align:center;">⚠ No hay incidencias operativas.</td>
+            <td colspan="8" style="text-align:center;">⚠ No hay incidencias operativas.</td>
         </tr>
         {% endfor %}
     </table>
@@ -66,16 +68,30 @@
 <div id="modal-nueva" style="border:2px solid green; padding:20px;">
     <h2> Registrar Nueva Incidencia Operativa</h2>
     <form method="post" action="{{ url_for('registrar_incidencia_operativa') }}">
+
+        <label>Bus</label>
+        <select name="id_bus" required>
+            <option value="">-- Seleccionar Bus --</option>
+            {% for b in buses %}
+                <option value="{{ b.id_bus }}">{{ b.placa }}</option>
+            {% endfor %}
+        </select>
+
         <label>Fecha</label>
         <input type="date" name="fecha" max="{{ hoy }}" required>
+
         <label>Descripción</label>
         <textarea name="descripcion" rows="3" required></textarea>
+
         <label>Gravedad</label>
         <input type="text" name="gravedad" required>
+
         <label>Costo</label>
         <input type="number" step="0.01" name="costo">
+
         <label>Requiere Seguro</label>
         <input type="checkbox" name="requiere_seguro">
+
         <label>Estado</label>
         <select name="estado" required>
             <option value="Pendiente">Pendiente</option>
@@ -97,16 +113,31 @@
     <form method="post" action="{{ url_for('actualizar_incidencia_operativa') }}">
         <input type="hidden" name="id_incidencia" value="{{ editar_incidencia.id_incidencia }}">
 
+        <label>Bus</label>
+        <select name="id_bus" required>
+            {% for b in buses %}
+                <option value="{{ b.id_bus }}"
+                    {% if editar_incidencia.id_bus == b.id_bus %}selected{% endif %}>
+                    {{ b.placa }}
+                </option>
+            {% endfor %}
+        </select>
+
         <label>Fecha</label>
         <input type="date" name="fecha" value="{{ editar_incidencia.fecha }}" max="{{ hoy }}" required>
+
         <label>Descripción</label>
         <textarea name="descripcion" rows="3" required>{{ editar_incidencia.descripcion }}</textarea>
+
         <label>Gravedad</label>
         <input type="text" name="gravedad" value="{{ editar_incidencia.gravedad }}" required>
+
         <label>Costo</label>
         <input type="number" step="0.01" name="costo" value="{{ editar_incidencia.costo }}">
+
         <label>Requiere Seguro</label>
         <input type="checkbox" name="requiere_seguro" {% if editar_incidencia.requiere_seguro %}checked{% endif %}>
+
         <label>Estado</label>
         <select name="estado" required>
             <option value="Pendiente" {% if editar_incidencia.estado=='Pendiente' %}selected{% endif %}>Pendiente</option>
