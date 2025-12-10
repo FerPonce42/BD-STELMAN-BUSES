@@ -925,13 +925,12 @@ def actualizar_personal_cobrador():
 #=============================================
 # MODULO DE INCIDENCIAS
 #=============================================
+
 @app.route("/panel/incidencias", methods=['GET'])
 def panel_incidencias():
     if 'usuario' not in session:
         return redirect(url_for('login'))
     return render_template("privado/incidencias.html")
-
-
 
 
 ######################################################
@@ -944,9 +943,9 @@ def panel_incidencias_disciplinarias():
         return redirect(url_for('login'))
 
     cursor = mysql.connection.cursor()
+
     id_supervisor = session['id']
 
- 
     cursor.execute("""
         SELECT id_ruta
         FROM supervisor_ruta
@@ -955,46 +954,81 @@ def panel_incidencias_disciplinarias():
     row = cursor.fetchone()
     id_ruta = row['id_ruta'] if row else None
 
-
+    # ========== NUEVO: obtener buses asignados a la ruta mediante bus_ruta ==========
+    buses = []
     if id_ruta:
         cursor.execute("""
-            SELECT i.id_incidencia, i.fecha, i.descripcion, i.estado,
-                   id.tipo_disciplinaria, id.sancion
-            FROM incidencia i
-            JOIN incidencia_disciplinaria id ON i.id_incidencia=id.id_incidencia
-            ORDER BY i.fecha DESC
-        """)
-    else:
-        cursor.execute("""
-            SELECT i.id_incidencia, i.fecha, i.descripcion, i.estado,
-                   id.tipo_disciplinaria, id.sancion
-            FROM incidencia i
-            JOIN incidencia_disciplinaria id ON i.id_incidencia=id.id_incidencia
-            ORDER BY i.fecha DESC
-        """)
+            SELECT b.id_bus, b.placa
+            FROM bus b
+            JOIN bus_ruta br ON b.id_bus = br.id_bus
+            WHERE br.id_ruta = %s
+              AND (br.fecha_desasignacion IS NULL OR br.fecha_desasignacion >= CURDATE())
+        """, (id_ruta,))
+        buses = cursor.fetchall()
+
+    # ========== listar incidencias ==========
+    cursor.execute("""
+        SELECT i.id_incidencia, i.fecha, i.descripcion, i.estado, i.id_bus,
+               id.tipo_disciplinaria, id.sancion
+        FROM incidencia i
+        JOIN incidencia_disciplinaria id
+        ON i.id_incidencia=id.id_incidencia
+        ORDER BY i.fecha DESC
+    """)
+
     incidencias = cursor.fetchall()
 
- 
+    # ========== edición ==========
     editar_id = request.args.get('editar')
     editar_incidencia = None
+
     if editar_id:
         cursor.execute("""
-            SELECT i.id_incidencia, i.fecha, i.descripcion, i.estado,
+            SELECT i.id_incidencia, i.fecha, i.descripcion, i.estado, i.id_bus,
                    id.tipo_disciplinaria, id.sancion
             FROM incidencia i
-            JOIN incidencia_disciplinaria id ON i.id_incidencia=id.id_incidencia
+            JOIN incidencia_disciplinaria id
+            ON i.id_incidencia=id.id_incidencia
             WHERE i.id_incidencia=%s
         """, (editar_id,))
         editar_incidencia = cursor.fetchone()
 
+        # Si el bus asociado a la incidencia no está en la lista de buses (p.ej. desasignado),
+        # lo agregamos para que el select muestre el valor actual y no rompa el formulario.
+        try:
+            if editar_incidencia and editar_incidencia.get('id_bus'):
+                editar_bus_id = editar_incidencia.get('id_bus')
+                found = False
+                for b in buses:
+                    # soportar filas tipo dict o tupla
+                    if isinstance(b, dict):
+                        if b.get('id_bus') == editar_bus_id:
+                            found = True
+                            break
+                    else:
+                        # tuple/list: asumimos (id_bus, placa)
+                        if len(b) >= 1 and b[0] == editar_bus_id:
+                            found = True
+                            break
+                if not found:
+                    cursor.execute("SELECT id_bus, placa FROM bus WHERE id_bus=%s", (editar_bus_id,))
+                    extra = cursor.fetchone()
+                    if extra:
+                        buses.append(extra)
+        except Exception:
+            # no rompemos si algo raro sucede; simplemente no añadimos el extra
+            pass
+
     cursor.close()
 
-    return render_template("privado/incidencias_disciplinarias.html",
-                           incidencias=incidencias,
-                           id_ruta=id_ruta,
-                           hoy=date.today().isoformat(),
-                           editar_incidencia=editar_incidencia)
-
+    return render_template(
+        "privado/incidencias_disciplinarias.html",
+        incidencias=incidencias,
+        id_ruta=id_ruta,
+        buses=buses,       # ← enviado al HTML
+        hoy=date.today().isoformat(),
+        editar_incidencia=editar_incidencia
+    )
 
 
 ################################################################
@@ -1003,7 +1037,9 @@ def panel_incidencias_disciplinarias():
 
 @app.route("/registrar_incidencia_disciplinaria", methods=['POST'])
 def registrar_incidencia_disciplinaria():
+
     cursor = mysql.connection.cursor()
+
     try:
         try:
             fecha_obj = datetime.strptime(request.form["fecha"], "%Y-%m-%d").date()
@@ -1018,13 +1054,15 @@ def registrar_incidencia_disciplinaria():
         mysql.connection.begin()
 
         cursor.execute("""
-            INSERT INTO incidencia(fecha, descripcion, estado)
-            VALUES (%s, %s, %s)
+            INSERT INTO incidencia(fecha, descripcion, estado, id_bus)
+            VALUES (%s, %s, %s, %s)
         """, (
             fecha_obj,
             request.form["descripcion"],
-            request.form["estado"]
+            request.form["estado"],
+            request.form["id_bus"]
         ))
+
         id_incidencia = cursor.lastrowid
 
         cursor.execute("""
@@ -1038,14 +1076,15 @@ def registrar_incidencia_disciplinaria():
 
         mysql.connection.commit()
         flash("✔ Incidencia disciplinaria registrada.", "success")
+
     except Exception as e:
         mysql.connection.rollback()
         flash(f"❌ Error: {str(e)}", "danger")
+
     finally:
         cursor.close()
 
     return redirect(url_for("panel_incidencias_disciplinarias"))
-
 
 
 #################################################################
@@ -1054,7 +1093,9 @@ def registrar_incidencia_disciplinaria():
 
 @app.route("/actualizar_incidencia_disciplinaria", methods=['POST'])
 def actualizar_incidencia_disciplinaria():
+
     cursor = mysql.connection.cursor()
+
     try:
         id_incidencia = request.form["id_incidencia"]
 
@@ -1072,12 +1113,13 @@ def actualizar_incidencia_disciplinaria():
 
         cursor.execute("""
             UPDATE incidencia
-            SET fecha=%s, descripcion=%s, estado=%s
+            SET fecha=%s, descripcion=%s, estado=%s, id_bus=%s
             WHERE id_incidencia=%s
         """, (
             fecha_obj,
             request.form["descripcion"],
             request.form["estado"],
+            request.form["id_bus"],
             id_incidencia
         ))
 
@@ -1093,9 +1135,11 @@ def actualizar_incidencia_disciplinaria():
 
         mysql.connection.commit()
         flash("✔ Incidencia disciplinaria actualizada.", "success")
+
     except Exception as e:
         mysql.connection.rollback()
         flash(f"❌ Error: {str(e)}", "danger")
+
     finally:
         cursor.close()
 
@@ -1108,16 +1152,22 @@ def actualizar_incidencia_disciplinaria():
 
 @app.route("/eliminar_incidencia_disciplinaria/<int:id_incidencia>", methods=['GET'])
 def eliminar_incidencia_disciplinaria(id_incidencia):
+
     cursor = mysql.connection.cursor()
+
     try:
         mysql.connection.begin()
+
         cursor.execute("DELETE FROM incidencia_disciplinaria WHERE id_incidencia=%s", (id_incidencia,))
         cursor.execute("DELETE FROM incidencia WHERE id_incidencia=%s", (id_incidencia,))
+
         mysql.connection.commit()
         flash("✔ Incidencia disciplinaria eliminada.", "success")
+
     except Exception as e:
         mysql.connection.rollback()
         flash(f"❌ Error: {str(e)}", "danger")
+
     finally:
         cursor.close()
 
