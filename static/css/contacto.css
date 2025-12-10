@@ -1,0 +1,556 @@
+/* ============================================
+   CONTACTO - STELMAN BUSES
+   Colores: Azul Royal (#2541B2) y Dorado (#F5A623)
+   ============================================ */
+
+/* Variables de Color */
+:root {
+    --azul-primary: #2541B2;
+    --azul-dark: #1a2d7a;
+    --azul-light: #3a5bc7;
+    --dorado: #F5A623;
+    --dorado-light: #FFB84D;
+    --gris-text: #333333;
+    --gris-light: #666666;
+    --gris-bg: #F8F9FA;
+    --blanco: #FFFFFF;
+    --sombra: rgba(37, 65, 178, 0.1);
+  }
+  
+  /* ============================================
+     HERO SECTION
+     ============================================ */
+  .contacto-hero {
+    position: relative;
+    height: 350px;
+    background: linear-gradient(135deg, var(--azul-primary) 0%, var(--azul-dark) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin-bottom: -80px;
+  }
+  
+  .contacto-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+      radial-gradient(circle at 20% 50%, rgba(245, 166, 35, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  
+  .hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/></svg>');
+    opacity: 0.5;
+  }
+  
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    color: var(--blanco);
+  }
+  
+  .hero-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin: 0 0 1rem 0;
+    letter-spacing: -1px;
+    text-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
+  }
+  
+  .hero-subtitle {
+    font-size: 1.25rem;
+    font-weight: 300;
+    margin: 0;
+    opacity: 0.95;
+  }
+  
+  /* ============================================
+     MAIN CONTACT SECTION
+     ============================================ */
+  .contacto-main {
+    padding: 100px 0 80px;
+    background: var(--gris-bg);
+  }
+  
+  .contacto-main .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  
+  /* ============================================
+     SUCCESS MESSAGE
+     ============================================ */
+  .success-message {
+    background: var(--blanco);
+    border-radius: 20px;
+    padding: 60px 40px;
+    text-align: center;
+    box-shadow: 0 10px 40px var(--sombra);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  .success-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--dorado) 0%, var(--dorado-light) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    color: var(--blanco);
+  }
+  
+  .success-message h2 {
+    font-size: 2rem;
+    color: var(--azul-primary);
+    margin: 0 0 16px 0;
+    font-weight: 700;
+  }
+  
+  .success-message p {
+    font-size: 1.1rem;
+    color: var(--gris-light);
+    line-height: 1.6;
+    margin: 0 0 12px 0;
+  }
+  
+  .success-message strong {
+    color: var(--azul-primary);
+    font-weight: 600;
+  }
+  
+  .success-info {
+    font-size: 0.95rem !important;
+    color: var(--dorado) !important;
+    font-weight: 500;
+    margin: 16px 0 32px !important;
+  }
+  
+  .btn-volver {
+    display: inline-block;
+    padding: 14px 36px;
+    background: var(--azul-primary);
+    color: var(--blanco);
+    text-decoration: none;
+    border-radius: 50px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(37, 65, 178, 0.3);
+  }
+  
+  .btn-volver:hover {
+    background: var(--azul-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(37, 65, 178, 0.4);
+  }
+  
+  /* ============================================
+     CONTACT GRID
+     ============================================ */
+  .contacto-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 40px;
+    align-items: start;
+  }
+  
+  /* ============================================
+     CONTACT INFO (LEFT SIDE)
+     ============================================ */
+  .contacto-info {
+    background: var(--blanco);
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px var(--sombra);
+  }
+  
+  .section-title {
+    font-size: 2rem;
+    color: var(--azul-primary);
+    margin: 0 0 16px 0;
+    font-weight: 700;
+  }
+  
+  .section-description {
+    font-size: 1rem;
+    color: var(--gris-light);
+    line-height: 1.7;
+    margin: 0 0 32px 0;
+  }
+  
+  .info-cards {
+    display: grid;
+    gap: 20px;
+  }
+  
+  .info-card {
+    display: flex;
+    gap: 16px;
+    padding: 20px;
+    background: var(--gris-bg);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+  }
+  
+  .info-card:hover {
+    background: var(--blanco);
+    border-color: var(--dorado);
+    transform: translateX(5px);
+    box-shadow: 0 5px 20px rgba(245, 166, 35, 0.15);
+  }
+  
+  .info-icon {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--azul-primary) 0%, var(--azul-light) 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--blanco);
+  }
+  
+  .info-content h3 {
+    font-size: 1.1rem;
+    color: var(--azul-primary);
+    margin: 0 0 8px 0;
+    font-weight: 600;
+  }
+  
+  .info-content p {
+    font-size: 0.95rem;
+    color: var(--gris-text);
+    margin: 0 0 4px 0;
+    font-weight: 500;
+  }
+  
+  .info-secondary {
+    font-size: 0.85rem !important;
+    color: var(--gris-light) !important;
+    font-weight: 400 !important;
+  }
+  
+  /* ============================================
+     CONTACT FORM (RIGHT SIDE)
+     ============================================ */
+  .contacto-form-wrapper {
+    background: var(--blanco);
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px var(--sombra);
+  }
+  
+  .form-header {
+    margin-bottom: 32px;
+  }
+  
+  .form-header h2 {
+    font-size: 1.8rem;
+    color: var(--azul-primary);
+    margin: 0 0 8px 0;
+    font-weight: 700;
+  }
+  
+  .form-header p {
+    font-size: 0.95rem;
+    color: var(--gris-light);
+    margin: 0;
+  }
+  
+  /* Form Styles */
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .form-group label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--gris-text);
+    margin-left: 4px;
+  }
+  
+  .input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+  }
+  
+  .input-icon {
+    position: absolute;
+    left: 16px;
+    top: 16px;
+    color: var(--gris-light);
+    pointer-events: none;
+    z-index: 1;
+  }
+  
+  .textarea-icon {
+    top: 16px;
+  }
+  
+  .input-wrapper input,
+  .input-wrapper textarea {
+    width: 100%;
+    padding: 14px 16px 14px 48px;
+    border: 2px solid #E5E7EB;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-family: inherit;
+    color: var(--gris-text);
+    transition: all 0.3s ease;
+    background: var(--blanco);
+  }
+  
+  .input-wrapper input:focus,
+  .input-wrapper textarea:focus {
+    outline: none;
+    border-color: var(--azul-primary);
+    box-shadow: 0 0 0 4px rgba(37, 65, 178, 0.1);
+  }
+  
+  .input-wrapper input::placeholder,
+  .input-wrapper textarea::placeholder {
+    color: #9CA3AF;
+  }
+  
+  .input-wrapper textarea {
+    resize: vertical;
+    min-height: 140px;
+    padding-top: 16px;
+  }
+  
+  /* Submit Button */
+  .btn-submit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, var(--dorado) 0%, var(--dorado-light) 100%);
+    color: var(--blanco);
+    border: none;
+    border-radius: 50px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(245, 166, 35, 0.3);
+    margin-top: 8px;
+  }
+  
+  .btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(245, 166, 35, 0.4);
+  }
+  
+  .btn-submit:active {
+    transform: translateY(0);
+  }
+  
+  /* ============================================
+     EXTRA INFO SECTION
+     ============================================ */
+  .contacto-extra {
+    padding: 60px 0;
+    background: var(--blanco);
+  }
+  
+  .extra-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  
+  .extra-card {
+    padding: 32px 28px;
+    background: var(--gris-bg);
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+  }
+  
+  .extra-card:hover {
+    background: var(--blanco);
+    border-color: var(--azul-primary);
+    box-shadow: 0 8px 30px var(--sombra);
+    transform: translateY(-5px);
+  }
+  
+  .extra-card h3 {
+    font-size: 1.25rem;
+    color: var(--azul-primary);
+    margin: 0 0 12px 0;
+    font-weight: 600;
+  }
+  
+  .extra-card p {
+    font-size: 0.95rem;
+    color: var(--gris-light);
+    line-height: 1.6;
+    margin: 0 0 16px 0;
+  }
+  
+  .link-arrow {
+    display: inline-flex;
+    align-items: center;
+    color: var(--dorado);
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+  
+  .link-arrow:hover {
+    color: var(--dorado-light);
+    transform: translateX(5px);
+  }
+  
+  /* ============================================
+     RESPONSIVE DESIGN
+     ============================================ */
+  
+  /* Tablets */
+  @media (max-width: 992px) {
+    .hero-title {
+      font-size: 2.8rem;
+    }
+  
+    .contacto-grid {
+      grid-template-columns: 1fr;
+      gap: 30px;
+    }
+  
+    .extra-grid {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+  }
+  
+  /* Mobile */
+  @media (max-width: 768px) {
+    .contacto-hero {
+      height: 280px;
+      margin-bottom: -60px;
+    }
+  
+    .hero-title {
+      font-size: 2.2rem;
+    }
+  
+    .hero-subtitle {
+      font-size: 1.1rem;
+    }
+  
+    .contacto-main {
+      padding: 80px 0 60px;
+    }
+  
+    .contacto-info,
+    .contacto-form-wrapper {
+      padding: 28px 24px;
+    }
+  
+    .section-title,
+    .form-header h2 {
+      font-size: 1.6rem;
+    }
+  
+    .info-card {
+      padding: 16px;
+    }
+  
+    .success-message {
+      padding: 40px 24px;
+    }
+  
+    .success-message h2 {
+      font-size: 1.6rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .hero-title {
+      font-size: 1.8rem;
+    }
+  
+    .contacto-hero {
+      height: 240px;
+    }
+  
+    .contacto-info,
+    .contacto-form-wrapper {
+      padding: 24px 20px;
+      border-radius: 16px;
+    }
+  
+    .input-wrapper input,
+    .input-wrapper textarea {
+      font-size: 0.95rem;
+    }
+  
+    .btn-submit {
+      font-size: 1rem;
+      padding: 14px 28px;
+    }
+  
+    .extra-card {
+      padding: 24px 20px;
+    }
+  }
+  
+  /* ============================================
+     ANIMATIONS
+     ============================================ */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .contacto-info,
+  .contacto-form-wrapper,
+  .success-message {
+    animation: fadeInUp 0.6s ease-out;
+  }
+  
+  .info-card {
+    animation: fadeInUp 0.6s ease-out;
+  }
+  
+  .info-card:nth-child(1) { animation-delay: 0.1s; }
+  .info-card:nth-child(2) { animation-delay: 0.2s; }
+  .info-card:nth-child(3) { animation-delay: 0.3s; }
+  .info-card:nth-child(4) { animation-delay: 0.4s; }

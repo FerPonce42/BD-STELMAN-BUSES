@@ -4,80 +4,184 @@
 
 {% block content %}
 
-<h1 class="mb-3">👋 Bienvenido, {{ nombre_supervisor }}</h1>
-<p class="lead text-muted">Tipo: *{{ tipo_supervisor }}*</p>
+<div class="dashboard-header">
+    <h1>Bienvenido, {{ nombre_supervisor }}</h1>
+    <div class="section-intro lead">Tipo: <strong>{{ tipo_supervisor }}</strong></div>
+</div>
 
-<div class="alert {{ 'alert-info' if kpi_buses > 0 else 'alert-warning' }}" role="alert">
+<div class="alert-message {{ 'info' if kpi_buses > 0 else 'warning' }}">
     <strong>{{ mensaje_ruta }}</strong>
 </div>
 
-<hr>
-
-<section>
+<section class="dashboard-stats">
     <h2>📊 Indicadores Clave de Operación</h2>
-    <p>Datos actualizados en tiempo real o al inicio de sesión.</p>
+    <p class="subtitle">Datos actualizados en tiempo real o al inicio de sesión.</p>
 
-    <div class="row">
-        <div class="col-lg-4 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                🚍 Buses Asignados
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {{ kpi_buses }} Unidades
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-bus fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
+    <div class="stats-grid">
+        <div class="stat-card buses">
+            <div class="stat-icon">🚍</div>
+            <div class="stat-info">
+                <div class="stat-label">Buses Asignados</div>
+                <div class="stat-value">{{ kpi_buses }}</div>
+                <div class="stat-unit">Unidades</div>
             </div>
         </div>
 
-        <div class="col-lg-4 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                💰 Recaudación Total Hoy
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {{ kpi_recaudacion }}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
+        <div class="stat-card revenue">
+            <div class="stat-icon">💰</div>
+            <div class="stat-info">
+                <div class="stat-label">Recaudación Total Hoy</div>
+                <div class="stat-value">{{ kpi_recaudacion }}</div>
             </div>
         </div>
 
-        <div class="col-lg-4 col-md-6 mb-4">
-            <div class="card border-left-danger shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-                                🚨 Incidencias Abiertas (Sistema)
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {{ kpi_incidencias }}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
+        <div class="stat-card incidents">
+            <div class="stat-icon">🚨</div>
+            <div class="stat-info">
+                <div class="stat-label">Incidencias Abiertas</div>
+                <div class="stat-value">{{ kpi_incidencias }}</div>
+                <div class="stat-unit">(Sistema)</div>
             </div>
         </div>
     </div>
-    </section>
+</section>
+
+<style>
+.dashboard-header {
+    background: white;
+    padding: 28px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.dashboard-header h1 {
+    margin: 0 0 8px 0;
+    color: #1a1d29;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.dashboard-header .lead {
+    margin: 0;
+    color: #666;
+    font-size: 16px;
+}
+
+.alert-message {
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    font-size: 15px;
+}
+
+.alert-message.info {
+    background: #e3f2fd;
+    border-left: 4px solid #2196f3;
+    color: #1565c0;
+}
+
+.alert-message.warning {
+    background: #fff3e0;
+    border-left: 4px solid #ff9800;
+    color: #e65100;
+}
+
+.dashboard-stats {
+    background: white;
+    padding: 28px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.dashboard-stats h2 {
+    margin: 0 0 8px 0;
+    color: #1a1d29;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.subtitle {
+    color: #666;
+    margin: 0 0 28px 0;
+    font-size: 14px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+.stat-card {
+    padding: 28px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    color: white;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+.stat-card.buses {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.stat-card.revenue {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+}
+
+.stat-card.incidents {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+}
+
+.stat-icon {
+    font-size: 56px;
+    line-height: 1;
+    opacity: 0.9;
+}
+
+.stat-info {
+    flex: 1;
+}
+
+.stat-label {
+    font-size: 13px;
+    opacity: 0.9;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.stat-value {
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.stat-unit {
+    font-size: 13px;
+    opacity: 0.8;
+    margin-top: 4px;
+}
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stat-value {
+        font-size: 28px;
+    }
+}
+</style>
 
 {% endblock %}

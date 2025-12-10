@@ -1,0 +1,387 @@
+/* ===================================
+   REPORTES.CSS - SAN STELMAN
+   Mejora visual SOLO para la página de reportes
+   =================================== */
+
+/* Variables de color */
+:root {
+    --azul-principal: #2B4FA5;
+    --azul-oscuro: #1e3a7a;
+    --amarillo-stelman: #FDB913;
+    --verde-success: #28a745;
+    --blanco: #ffffff;
+}
+
+/* ===================================
+   CONTENEDOR PRINCIPAL - Solo contenido
+   =================================== */
+
+.content-wrapper h1,
+.main-content h1,
+main h1 {
+    background: linear-gradient(135deg, var(--azul-oscuro) 0%, var(--azul-principal) 100%);
+    color: white !important;
+    padding: 2rem 2.5rem !important;
+    border-radius: 16px 16px 0 0 !important;
+    margin: 0 0 0 0 !important;
+    font-size: 2rem !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 20px rgba(43, 79, 165, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* ===================================
+   PÁRRAFO DESPUÉS DEL H1 - Solo en contenido
+   =================================== */
+
+.content-wrapper h1 + p,
+.main-content h1 + p,
+main h1 + p {
+    background: linear-gradient(135deg, var(--azul-oscuro) 0%, var(--azul-principal) 100%);
+    color: rgba(255, 255, 255, 0.95) !important;
+    padding: 0 2.5rem 2rem 2.5rem !important;
+    margin: 0 0 2rem 0 !important;
+    border-radius: 0 0 16px 16px;
+    font-size: 1.05rem;
+    line-height: 1.6;
+}
+
+/* ===================================
+   HR - OCULTAR solo en contenido
+   =================================== */
+
+.content-wrapper hr,
+.main-content hr,
+main hr {
+    display: none !important;
+}
+
+/* ===================================
+   H2 - SECCIÓN DE EXPORTACIÓN - Solo en contenido
+   =================================== */
+
+.content-wrapper h2,
+.main-content h2,
+main h2 {
+    background: white;
+    color: var(--azul-principal) !important;
+    padding: 1.75rem 2rem !important;
+    border-radius: 16px 16px 0 0 !important;
+    margin: 0 !important;
+    font-size: 1.6rem !important;
+    font-weight: 700 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border-left: 4px solid var(--amarillo-stelman);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* ===================================
+   PÁRRAFO DESPUÉS DEL H2 - Solo en contenido
+   =================================== */
+
+.content-wrapper h2 + p,
+.main-content h2 + p,
+main h2 + p {
+    background: white;
+    padding: 1.5rem 2rem 0.5rem 2rem !important;
+    margin: 0 !important;
+    color: #495057;
+    font-size: 1rem;
+    font-weight: 500;
+    box-shadow: 0 0 0 1px #f0f0f0;
+}
+
+/* ===================================
+   LISTA UL - Solo en contenido principal
+   =================================== */
+
+.content-wrapper ul,
+.main-content ul,
+main ul {
+    background: white;
+    padding: 1rem 2rem 2rem 2rem !important;
+    margin: 0 !important;
+    list-style: none !important;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    box-shadow: 0 0 0 1px #f0f0f0;
+}
+
+.content-wrapper ul li,
+.main-content ul li,
+main ul li {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 1.1rem 1.3rem;
+    border-radius: 10px;
+    border: 2px solid #dee2e6;
+    color: #495057;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Icono check antes de cada li - Solo en contenido */
+.content-wrapper ul li::before,
+.main-content ul li::before,
+main ul li::before {
+    content: '✓';
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, var(--azul-principal) 0%, var(--azul-oscuro) 100%);
+    color: white;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 16px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(43, 79, 165, 0.3);
+}
+
+.content-wrapper ul li:hover,
+.main-content ul li:hover,
+main ul li:hover {
+    transform: translateX(8px);
+    border-color: var(--azul-principal);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.content-wrapper ul li:hover::before,
+.main-content ul li:hover::before,
+main ul li:hover::before {
+    transform: scale(1.1);
+}
+
+/* ===================================
+   DIV CONTENEDOR DEL BOTÓN - Solo en contenido
+   =================================== */
+
+.content-wrapper div[style*="margin-top"],
+.main-content div[style*="margin-top"],
+main div[style*="margin-top"] {
+    background: white !important;
+    padding: 2rem !important;
+    margin: 0 !important;
+    border-radius: 0 0 16px 16px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* ===================================
+   BOTÓN DE DESCARGA - Solo en contenido
+   =================================== */
+
+.content-wrapper a[href="/exportar_excel"],
+.main-content a[href="/exportar_excel"],
+main a[href="/exportar_excel"] {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    width: 100% !important;
+    padding: 1.5rem 2rem !important;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+    color: white !important;
+    font-weight: 700 !important;
+    font-size: 1.15rem !important;
+    border-radius: 12px !important;
+    text-decoration: none !important;
+    box-shadow: 0 8px 24px rgba(40, 167, 69, 0.35) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    border: none !important;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Efecto de brillo al pasar el mouse */
+.content-wrapper a[href="/exportar_excel"]::before,
+.main-content a[href="/exportar_excel"]::before,
+main a[href="/exportar_excel"]::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.content-wrapper a[href="/exportar_excel"]:hover::before,
+.main-content a[href="/exportar_excel"]:hover::before,
+main a[href="/exportar_excel"]:hover::before {
+    left: 100%;
+}
+
+.content-wrapper a[href="/exportar_excel"]:hover,
+.main-content a[href="/exportar_excel"]:hover,
+main a[href="/exportar_excel"]:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 12px 32px rgba(40, 167, 69, 0.45) !important;
+}
+
+.content-wrapper a[href="/exportar_excel"]:active,
+.main-content a[href="/exportar_excel"]:active,
+main a[href="/exportar_excel"]:active {
+    transform: translateY(-2px) !important;
+}
+
+/* ===================================
+   RESPONSIVE
+   =================================== */
+
+@media (max-width: 992px) {
+    .content-wrapper h1,
+    .main-content h1,
+    main h1 {
+        font-size: 1.75rem !important;
+        padding: 1.75rem 2rem !important;
+    }
+
+    .content-wrapper h1 + p,
+    .main-content h1 + p,
+    main h1 + p {
+        padding: 0 2rem 1.75rem 2rem !important;
+        font-size: 1rem;
+    }
+
+    .content-wrapper h2,
+    .main-content h2,
+    main h2 {
+        font-size: 1.4rem !important;
+        padding: 1.5rem 1.75rem !important;
+    }
+
+    .content-wrapper ul,
+    .main-content ul,
+    main ul {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.875rem;
+        padding: 1rem 1.75rem 1.75rem 1.75rem !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .content-wrapper h1,
+    .main-content h1,
+    main h1 {
+        font-size: 1.5rem !important;
+        padding: 1.5rem !important;
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .content-wrapper h1 + p,
+    .main-content h1 + p,
+    main h1 + p {
+        padding: 0 1.5rem 1.5rem 1.5rem !important;
+        font-size: 0.95rem;
+        text-align: center;
+    }
+
+    .content-wrapper h2,
+    .main-content h2,
+    main h2 {
+        font-size: 1.25rem !important;
+        padding: 1.25rem 1.5rem !important;
+    }
+
+    .content-wrapper h2 + p,
+    .main-content h2 + p,
+    main h2 + p {
+        padding: 1.25rem 1.5rem 0.5rem 1.5rem !important;
+        font-size: 0.95rem;
+    }
+
+    .content-wrapper ul,
+    .main-content ul,
+    main ul {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+        padding: 1rem 1.5rem 1.5rem 1.5rem !important;
+    }
+
+    .content-wrapper ul li,
+    .main-content ul li,
+    main ul li {
+        padding: 1rem;
+        font-size: 0.9rem;
+    }
+
+    .content-wrapper ul li::before,
+    .main-content ul li::before,
+    main ul li::before {
+        width: 28px;
+        height: 28px;
+        font-size: 14px;
+    }
+
+    .content-wrapper div[style*="margin-top"],
+    .main-content div[style*="margin-top"],
+    main div[style*="margin-top"] {
+        padding: 1.5rem !important;
+    }
+
+    .content-wrapper a[href="/exportar_excel"],
+    .main-content a[href="/exportar_excel"],
+    main a[href="/exportar_excel"] {
+        font-size: 1rem !important;
+        padding: 1.25rem 1.5rem !important;
+        gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .content-wrapper h1,
+    .main-content h1,
+    main h1 {
+        font-size: 1.25rem !important;
+        padding: 1.25rem !important;
+    }
+
+    .content-wrapper h1 + p,
+    .main-content h1 + p,
+    main h1 + p {
+        padding: 0 1.25rem 1.25rem 1.25rem !important;
+        font-size: 0.9rem;
+    }
+
+    .content-wrapper h2,
+    .main-content h2,
+    main h2 {
+        font-size: 1.1rem !important;
+        padding: 1rem 1.25rem !important;
+    }
+
+    .content-wrapper ul li,
+    .main-content ul li,
+    main ul li {
+        padding: 0.875rem;
+    }
+
+    .content-wrapper a[href="/exportar_excel"],
+    .main-content a[href="/exportar_excel"],
+    main a[href="/exportar_excel"] {
+        font-size: 0.95rem !important;
+        padding: 1.125rem !important;
+    }
+}
+
+/* ===================================
+   SCROLL SUAVE
+   =================================== */
+
+html {
+    scroll-behavior: smooth;
+}

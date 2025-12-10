@@ -69,10 +69,10 @@
             <td>{{ b.año }}</td>
             <td>{{ b.revision | default('N/A', true) }}</td>
             <td>
-                <a href="{{ url_for('panel_buses', id_editar=b.id_bus) }}#modal-edicion" class="btn-sm">✏️ Editar</a>
+                <a href="{{ url_for('panel_buses', id_editar=b.id_bus) }}#modal-edicion" class="btn-sm btn-info"> Editar</a>
                 
-                <a href="{{ url_for('panel_buses_eliminar', id_bus=b.id_bus) }}" class="btn-sm" 
-                   onclick="return confirm('¿Seguro que deseas desasignar el bus {{ b.placa }} de tu ruta?')">🗑️ Desasignar</a>
+                <a href="{{ url_for('panel_buses_eliminar', id_bus=b.id_bus) }}" class="btn-sm btn-warning" 
+                   onclick="return confirm('¿Seguro que deseas desasignar el bus {{ b.placa }} de tu ruta?')"> Desasignar</a>
             </td>
         </tr>
         {% else %}
@@ -83,10 +83,14 @@
     </table>
 </section>
 
-<div id="modal-registro" style="{% if 'nuevo' not in request.args %}display: none;{% endif %} border: 1px solid #ccc; padding: 20px; margin-top: 20px;">
+{% if 'nuevo' in request.args %}
+<div id="modal-registro" style="border: 1px solid #ccc; padding: 20px; margin-top: 20px; display: block;">
+{% else %}
+<div id="modal-registro" style="border: 1px solid #ccc; padding: 20px; margin-top: 20px; display: none;">
+{% endif %}
     <h2>Registrar Nuevo Bus</h2>
 
-    <form method="post">
+    <form method="post" name="form_nuevo_bus">
         <label>Placa</label>
         <input type="text" name="placa" required>
 

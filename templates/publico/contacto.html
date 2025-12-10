@@ -1,28 +1,191 @@
 {% extends 'publico/base.html' %}
-
 {% block title %}Contacto - Stelman Buses{% endblock %}
 
-{% block content %}
-<section class="container">
-  <h1>Contacto</h1>
-
-  {% if enviado %}
-    <p>Gracias {{ nombre }} — tu mensaje fue recibido (simulado).</p>
-  {% else %}
-    <p>Si tienes preguntas puedes escribirnos (este formulario es estático, luego lo conectamos al backend).</p>
-
-    <form action="{{ url_for('contacto') }}" method="post" class="contact-form">
-      <label for="nombre">Nombre</label>
-      <input id="nombre" name="nombre" type="text" placeholder="Tu nombre" required>
-
-      <label for="email">Email</label>
-      <input id="email" name="email" type="email" placeholder="tu@correo.com" required>
-
-      <label for="mensaje">Mensaje</label>
-      <textarea id="mensaje" name="mensaje" rows="5" placeholder="Escribe tu mensaje..." required></textarea>
-
-      <button type="submit">Enviar</button>
-    </form>
-  {% endif %}
-</section>
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/contacto.css') }}">
 {% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="contacto-hero">
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <h1 class="hero-title">¿Necesitas Ayuda?</h1>
+    <p class="hero-subtitle">Estamos aquí para atenderte</p>
+  </div>
+</section>
+
+<!-- Main Contact Section -->
+<section class="contacto-main">
+  <div class="container">
+    
+    {% if enviado %}
+    <!-- Mensaje de Éxito -->
+    <div class="success-message">
+      <div class="success-icon">
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+      </div>
+      <h2>¡Mensaje Enviado!</h2>
+      <p>Gracias <strong>{{ nombre }}</strong>, hemos recibido tu mensaje correctamente.</p>
+      <p class="success-info">Nuestro equipo te responderá en menos de 24 horas.</p>
+      <a href="{{ url_for('contacto') }}" class="btn-volver">Enviar otro mensaje</a>
+    </div>
+    {% else %}
+    
+    <!-- Contact Info & Form Grid -->
+    <div class="contacto-grid">
+      
+      <!-- Left Side - Contact Info -->
+      <div class="contacto-info">
+        <h2 class="section-title">Comunícate con Nosotros</h2>
+        <p class="section-description">
+          Estamos disponibles para resolver tus dudas, recibir sugerencias o atender cualquier consulta sobre nuestros servicios de transporte urbano.
+        </p>
+        
+        <div class="info-cards">
+          <!-- Card 1: Teléfono -->
+          <div class="info-card">
+            <div class="info-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+              </svg>
+            </div>
+            <div class="info-content">
+              <h3>Teléfono</h3>
+              <p>(054) 123-4567</p>
+              <p class="info-secondary">Lun - Sáb: 6:00 AM - 10:00 PM</p>
+            </div>
+          </div>
+
+          <!-- Card 2: Email -->
+          <div class="info-card">
+            <div class="info-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+            </div>
+            <div class="info-content">
+              <h3>Email</h3>
+              <p>contacto@stelmanbuses.com</p>
+              <p class="info-secondary">Respuesta en 24 horas</p>
+            </div>
+          </div>
+
+          <!-- Card 3: Ubicación -->
+          <div class="info-card">
+            <div class="info-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+              </svg>
+            </div>
+            <div class="info-content">
+              <h3>Oficina Central</h3>
+              <p>Av. Ejército 1234</p>
+              <p class="info-secondary">Arequipa, Perú</p>
+            </div>
+          </div>
+
+          <!-- Card 4: Horarios -->
+          <div class="info-card">
+            <div class="info-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+            </div>
+            <div class="info-content">
+              <h3>Horarios de Atención</h3>
+              <p>Lunes a Viernes: 7:00 AM - 7:00 PM</p>
+              <p class="info-secondary">Sábados: 8:00 AM - 2:00 PM</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Side - Contact Form -->
+      <div class="contacto-form-wrapper">
+        <div class="form-header">
+          <h2>Envíanos un Mensaje</h2>
+          <p>Completa el formulario y nos pondremos en contacto contigo pronto</p>
+        </div>
+
+        <form action="{{ url_for('contacto') }}" method="post" class="contact-form">
+          <div class="form-group">
+            <label for="nombre">Nombre Completo</label>
+            <div class="input-wrapper">
+              <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <input id="nombre" name="nombre" type="text" placeholder="Ej: Juan Pérez" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="email">Correo Electrónico</label>
+            <div class="input-wrapper">
+              <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+              <input id="email" name="email" type="email" placeholder="tu@correo.com" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="mensaje">Mensaje</label>
+            <div class="input-wrapper">
+              <svg class="input-icon textarea-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              </svg>
+              <textarea id="mensaje" name="mensaje" rows="5" placeholder="Escribe tu mensaje aquí..." required></textarea>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-submit">
+            <span>Enviar Mensaje</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </form>
+      </div>
+
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+
+<!-- Additional Info Section -->
+<section class="contacto-extra">
+  <div class="container">
+    <div class="extra-grid">
+      <div class="extra-card">
+        <h3>¿Perdiste algo en el bus?</h3>
+        <p>Contacta a nuestro departamento de objetos perdidos</p>
+        <a href="tel:054123456" class="link-arrow">Llamar ahora →</a>
+      </div>
+      <div class="extra-card">
+        <h3>Sugerencias y Reclamos</h3>
+        <p>Tu opinión nos ayuda a mejorar el servicio</p>
+        <a href="#" class="link-arrow">Libro de reclamaciones →</a>
+      </div>
+      <div class="extra-card">
+        <h3>Trabaja con Nosotros</h3>
+        <p>Únete a nuestro equipo de profesionales</p>
+        <a href="#" class="link-arrow">Ver vacantes →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+

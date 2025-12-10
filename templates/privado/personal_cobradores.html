@@ -16,7 +16,7 @@
 
 <section style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
     <a href="{{ url_for('panel_personal_cobradores', nuevo_cobrador='true') }}#modal-registro-cobrador" class="btn btn-primary">
-        ➕ Nuevo Cobrador
+         Nuevo Cobrador
     </a>
 </section>
 
@@ -49,9 +49,9 @@
             <td>S/. {{ c.sueldo }}</td>
             <td>{{ c.idiomas if c.idiomas else '-' }}</td>
             <td style="text-align:right;">
-                <a href="{{ url_for('panel_personal_cobradores', editar=c.id_empleado) }}#modal-editar" class="btn-sm">✏️ Editar</a>
+                <a href="{{ url_for('panel_personal_cobradores', editar=c.id_empleado) }}#modal-editar" class="btn-sm btn-info"> Editar</a>
                 <a href="{{ url_for('panel_personal_cobradores', eliminar=c.id_empleado) }}" class="btn-sm btn-warning"
-                   onclick="return confirm('¿Seguro de eliminar este cobrador?')">🗑️ Eliminar</a>
+                   onclick="return confirm('¿Seguro de eliminar este cobrador?')"> Eliminar</a>
             </td>
         </tr>
         {% else %}
@@ -67,7 +67,7 @@
 {# ===================== NUEVO COBRADOR ===================== #}
 {% if 'nuevo_cobrador' in request.args %}
 <div id="modal-registro-cobrador" style="border:2px solid green;padding:20px;">
-    <h2>➕ Registrar Nuevo Cobrador</h2>
+    <h2> Registrar Nuevo Cobrador</h2>
     <form method="post" action="{{ url_for('registrar_personal_cobrador') }}">
 
         <h3>Datos Personales</h3>
@@ -100,7 +100,7 @@
 {# ===================== EDITAR COBRADOR ===================== #}
 {% if editar_personal %}
 <div id="modal-editar" style="border:2px solid orange;padding:20px;">
-    <h2>✏️ Editar Cobrador</h2>
+    <h2> Editar Cobrador</h2>
 
     <form method="post" action="{{ url_for('actualizar_personal_cobrador') }}">
         <input type="hidden" name="id_empleado" value="{{ editar_personal.id_empleado }}">

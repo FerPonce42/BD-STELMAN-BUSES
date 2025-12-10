@@ -17,7 +17,7 @@
 <!-- Botón Nueva Incidencia -->
 <section style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
     <a href="{{ url_for('panel_incidencias_disciplinarias', nuevo_incidencia='true') }}#modal-nueva" class="btn btn-primary">
-        ➕ Nueva Incidencia Disciplinaria
+         Nueva Incidencia Disciplinaria
     </a>
 </section>
 
@@ -44,9 +44,9 @@
             <td>{{ inc.sancion }}</td>
             <td>{{ inc.estado }}</td>
             <td style="text-align:right;">
-                <a href="{{ url_for('panel_incidencias_disciplinarias', editar=inc.id_incidencia) }}#modal-editar" class="btn-sm">✏️ Editar</a>
+                <a href="{{ url_for('panel_incidencias_disciplinarias', editar=inc.id_incidencia) }}#modal-editar" class="btn-sm btn-info"> Editar</a>
                 <a href="{{ url_for('eliminar_incidencia_disciplinaria', id_incidencia=inc.id_incidencia) }}" class="btn-sm btn-warning"
-                   onclick="return confirm('¿Seguro de eliminar esta incidencia disciplinaria?')">🗑️ Eliminar</a>
+                   onclick="return confirm('¿Seguro de eliminar esta incidencia disciplinaria?')"> Eliminar</a>
             </td>
         </tr>
         {% else %}
@@ -62,7 +62,7 @@
 {# ===================== NUEVA INCIDENCIA ===================== #}
 {% if 'nuevo_incidencia' in request.args %}
 <div id="modal-nueva" style="border:2px solid green; padding:20px;">
-    <h2>➕ Registrar Nueva Incidencia Disciplinaria</h2>
+    <h2> Registrar Nueva Incidencia Disciplinaria</h2>
     <form method="post" action="{{ url_for('registrar_incidencia_disciplinaria') }}">
         <label>Fecha</label>
         <input type="date" name="fecha" required min="2000-01-01" max="{{ hoy }}">
@@ -89,7 +89,7 @@
 {# ===================== EDITAR INCIDENCIA ===================== #}
 {% if editar_incidencia %}
 <div id="modal-editar" style="border:2px solid orange; padding:20px;">
-    <h2>✏️ Editar Incidencia Disciplinaria</h2>
+    <h2> Editar Incidencia Disciplinaria</h2>
     <form method="post" action="{{ url_for('actualizar_incidencia_disciplinaria') }}">
         <input type="hidden" name="id_incidencia" value="{{ editar_incidencia.id_incidencia }}">
 

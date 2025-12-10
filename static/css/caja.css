@@ -1,0 +1,712 @@
+/* ===================================
+   CAJA.CSS - SAN STELMAN
+   Diseño premium y moderno
+   =================================== */
+
+   :root {
+    --azul-principal: #2B4FA5;
+    --azul-oscuro: #1e3a7a;
+    --amarillo-stelman: #FDB913;
+    --verde-success: #28a745;
+    --rojo-danger: #dc3545;
+    --azul-info: #17a2b8;
+    --blanco: #ffffff;
+}
+
+/* Fondo general con patrón */
+.content-wrapper,
+.main-content,
+main {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    position: relative;
+    min-height: 100vh;
+    padding: 2rem !important;
+}
+
+/* Asegurar que los párrafos de introducción sean legibles y no se corten */
+.content-wrapper p,
+.main-content p,
+main p {
+    color: var(--azul-oscuro) !important;
+    margin: 1rem 0 !important;
+    line-height: 1.5 !important;
+    word-break: keep-all;
+}
+
+.content-wrapper .section-intro {
+    display: inline-block;
+    padding: 0.6rem 1.25rem !important;
+    border-radius: 999px !important;
+    background: linear-gradient(135deg, var(--azul-principal) 0%, var(--azul-oscuro) 100%) !important;
+    color: white !important;
+    box-shadow: 0 6px 18px rgba(43,79,165,0.18) !important;
+    overflow: visible !important;
+    max-width: 100%;
+    white-space: nowrap;
+}
+
+.content-wrapper::before,
+.main-content::before,
+main::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 20% 50%, rgba(43, 79, 165, 0.03) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(253, 185, 19, 0.03) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+/* ===================================
+   TÍTULO PRINCIPAL CON EFECTOS
+   =================================== */
+
+.content-wrapper h1:first-child,
+.main-content h1:first-child,
+main h1:first-child {
+    position: relative;
+    background: linear-gradient(135deg, var(--azul-oscuro) 0%, var(--azul-principal) 50%, #4a6fa5 100%);
+    color: white !important;
+    padding: 2.5rem 3rem !important;
+    border-radius: 20px !important;
+    margin: 0 0 2.5rem 0 !important;
+    font-size: 2.25rem !important;
+    font-weight: 800 !important;
+    box-shadow: 
+        0 10px 30px rgba(43, 79, 165, 0.3),
+        0 1px 3px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.content-wrapper h1:first-child::before,
+.main-content h1:first-child::before,
+main h1:first-child::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(253, 185, 19, 0.2) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(-30px, -30px) scale(1.1); }
+}
+
+/* ===================================
+   ALERTAS MEJORADAS
+   =================================== */
+
+.alert {
+    padding: 1.5rem 2rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    border: none;
+    font-weight: 500;
+    font-size: 1rem;
+    animation: slideDown 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.alert::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    background: currentColor;
+}
+
+.alert::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.1) 100%);
+    pointer-events: none;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    color: #155724;
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    color: #721c24;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    color: #856404;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+    color: #0c5460;
+}
+
+/* ===================================
+   HEADER DE ACCIONES
+   =================================== */
+
+section[style*="display:flex"] {
+    display: flex !important;
+    justify-content: flex-end !important;
+    margin-bottom: 2rem !important;
+    gap: 1rem;
+    position: relative;
+    z-index: 2;
+}
+
+/* Botón Registrar con efectos premium */
+.btn-primary,
+a.btn-primary {
+    position: relative;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 1.1rem 2.5rem !important;
+    background: linear-gradient(135deg, var(--azul-principal) 0%, var(--azul-oscuro) 100%) !important;
+    color: white !important;
+    font-weight: 700 !important;
+    font-size: 1.05rem !important;
+    border-radius: 12px !important;
+    text-decoration: none !important;
+    border: none !important;
+    box-shadow: 
+        0 8px 20px rgba(43, 79, 165, 0.3),
+        0 2px 4px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.btn-primary::before,
+a.btn-primary::before {
+    content: '+';
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 8px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary::after,
+a.btn-primary::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn-primary:hover::after,
+a.btn-primary:hover::after {
+    width: 300px;
+    height: 300px;
+}
+
+.btn-primary:hover,
+a.btn-primary:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 
+        0 12px 30px rgba(43, 79, 165, 0.4),
+        0 4px 8px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+/* ===================================
+   HR
+   =================================== */
+
+hr {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(43, 79, 165, 0.2), transparent);
+    border: none;
+    margin: 2.5rem 0 !important;
+}
+
+/* ===================================
+   CONTENEDOR DE TABLA
+   =================================== */
+
+section:has(table) {
+    background: white;
+    border-radius: 20px;
+    padding: 0;
+    box-shadow: 
+        0 10px 40px rgba(0, 0, 0, 0.1),
+        0 2px 8px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    position: relative;
+}
+
+section h2 {
+    color: var(--azul-principal) !important;
+    font-size: 1.75rem !important;
+    font-weight: 800 !important;
+    margin: 0 !important;
+    padding: 2rem 2.5rem !important;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 3px solid var(--amarillo-stelman);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+section h2::before {
+    content: '📋';
+    font-size: 2rem;
+    animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+/* ===================================
+   TABLA PREMIUM
+   =================================== */
+
+table {
+    width: 100% !important;
+    background: white;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    border: none !important;
+    margin: 0;
+}
+
+/* Encabezado */
+table thead tr {
+    background: linear-gradient(135deg, var(--azul-oscuro) 0%, var(--azul-principal) 100%) !important;
+}
+
+table th {
+    color: var(--azul-oscuro) !important;
+    font-weight: 700 !important;
+    font-size: 0.85rem !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 1.5rem 2rem !important;
+    text-align: left;
+    border: none !important;
+    position: relative;
+}
+
+table th::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--amarillo-stelman);
+}
+
+/* Filas */
+table tbody tr {
+    transition: all 0.3s ease;
+    border-bottom: 1px solid #f0f0f0 !important;
+    position: relative;
+}
+
+table tbody tr::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--amarillo-stelman);
+    transform: scaleY(0);
+    transition: transform 0.3s ease;
+}
+
+table tbody tr:hover::before {
+    transform: scaleY(1);
+}
+
+table tbody tr:hover {
+    background: linear-gradient(90deg, rgba(43, 79, 165, 0.03) 0%, transparent 100%) !important;
+    transform: scale(1.01);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+table td {
+    padding: 1.5rem 2rem !important;
+    color: #495057;
+    font-size: 1rem;
+    font-weight: 500;
+    border: none !important;
+    vertical-align: middle;
+}
+
+/* Fila vacía */
+table tr:has(td[colspan]) {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%) !important;
+}
+
+table td[colspan] {
+    text-align: center !important;
+    color: #856404 !important;
+    font-weight: 600;
+    padding: 3rem !important;
+    font-size: 1.1rem;
+}
+
+/* ===================================
+   COLUMNA DE ACCIONES PREMIUM
+   =================================== */
+
+table td:last-child {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 1.25rem !important;
+}
+
+table tr:hover td:last-child {
+    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+}
+
+/* ===================================
+   BOTONES DE ACCIÓN PREMIUM
+   =================================== */
+
+.btn-sm {
+    position: relative;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0.75rem 1.5rem !important;
+    font-size: 0.875rem !important;
+    font-weight: 700 !important;
+    border-radius: 10px !important;
+    text-decoration: none !important;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
+    border: none;
+    cursor: pointer;
+    margin-right: 0.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.btn-sm::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.4s, height 0.4s;
+}
+
+.btn-sm:hover::after {
+    width: 200px;
+    height: 200px;
+}
+
+.btn-info {
+    background: linear-gradient(135deg, var(--azul-info) 0%, #138496 100%) !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
+}
+
+.btn-info::before {
+    content: '✎';
+    font-size: 1.1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.btn-info:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(23, 162, 184, 0.4);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, var(--rojo-danger) 0%, #c82333 100%) !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.btn-warning::before {
+    content: '🗑';
+    font-size: 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.btn-warning:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(220, 53, 69, 0.4);
+}
+
+/* ===================================
+   MODAL PREMIUM
+   =================================== */
+
+div#modal-registro-caja {
+    background: white !important;
+    border: none !important;
+    padding: 3rem !important;
+    border-radius: 24px !important;
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.15),
+        0 4px 12px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+    margin-top: 3rem;
+    animation: fadeInUp 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    position: relative;
+    overflow: hidden;
+}
+
+div#modal-registro-caja::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, var(--verde-success) 0%, #20c997 100%);
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+div#modal-registro-caja h2 {
+    color: var(--verde-success) !important;
+    font-size: 1.85rem !important;
+    font-weight: 800 !important;
+    margin-bottom: 2.5rem !important;
+    padding-bottom: 1.5rem !important;
+    border-bottom: 3px solid #e9ecef !important;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+div#modal-registro-caja h2::before {
+    content: '📝';
+    font-size: 2rem;
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.1) 0%, rgba(32, 201, 151, 0.1) 100%);
+    padding: 15px;
+    border-radius: 12px;
+}
+
+/* ===================================
+   FORMULARIO PREMIUM
+   =================================== */
+
+form {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+}
+
+form > * {
+    position: relative;
+    z-index: 1;
+}
+
+form label {
+    color: var(--azul-oscuro);
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+form input[type="date"],
+form input[type="number"],
+form select,
+form textarea {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+    font-weight: 500;
+}
+
+form input:focus,
+form select:focus,
+form textarea:focus {
+    outline: none;
+    border-color: var(--azul-principal);
+    background: white;
+    box-shadow: 
+        0 0 0 4px rgba(43, 79, 165, 0.1),
+        0 4px 12px rgba(0, 0, 0, 0.05);
+    transform: translateY(-2px);
+}
+
+form textarea {
+    min-height: 140px;
+    resize: vertical;
+    font-family: inherit;
+    grid-column: 1 / -1;
+}
+
+form input[type="hidden"] {
+    display: none;
+}
+
+/* Botones del formulario */
+form br {
+    display: none;
+}
+
+form button[type="submit"],
+form .btn-sm {
+    grid-column: span 1;
+    margin-top: 1rem;
+}
+
+form button[type="submit"] {
+    padding: 1.2rem 2.5rem;
+    background: linear-gradient(135deg, var(--verde-success) 0%, #20c997 100%);
+    color: white;
+    font-weight: 800;
+    font-size: 1.1rem;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    box-shadow: 
+        0 6px 20px rgba(40, 167, 69, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+form button[type="submit"]:hover {
+    transform: translateY(-4px);
+    box-shadow: 
+        0 10px 30px rgba(40, 167, 69, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+form .btn-sm {
+    padding: 1.2rem 2.5rem !important;
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%) !important;
+    color: white !important;
+    font-size: 1.1rem !important;
+    box-shadow: 0 6px 20px rgba(108, 117, 125, 0.3);
+    justify-content: center;
+    font-weight: 800;
+}
+
+form .btn-sm:hover {
+    background: linear-gradient(135deg, #5a6268 0%, #495057 100%) !important;
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(108, 117, 125, 0.4);
+}
+
+form .btn-sm::before {
+    content: '✕';
+    font-size: 1.3rem;
+}
+
+/* ===================================
+   RESPONSIVE
+   =================================== */
+
+@media (max-width: 992px) {
+    form {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .content-wrapper,
+    .main-content,
+    main {
+        padding: 1rem !important;
+    }
+
+    .content-wrapper h1:first-child,
+    .main-content h1:first-child,
+    main h1:first-child {
+        font-size: 1.75rem !important;
+        padding: 1.75rem 2rem !important;
+    }
+
+    section h2 {
+        font-size: 1.4rem !important;
+        padding: 1.5rem 1.75rem !important;
+    }
+
+    table th,
+    table td {
+        padding: 1.25rem 1.5rem !important;
+        font-size: 0.9rem;
+    }
+
+    .btn-sm {
+        display: block !important;
+        margin-bottom: 0.75rem;
+        margin-right: 0;
+    }
+
+    div#modal-registro-caja {
+        padding: 2rem !important;
+    }
+}

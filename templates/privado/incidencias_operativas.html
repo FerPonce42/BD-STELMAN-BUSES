@@ -17,7 +17,7 @@
 <!-- Botón Nueva Incidencia -->
 <section style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
     <a href="{{ url_for('panel_incidencias_operativas', nuevo_incidencia='true') }}#modal-nueva" class="btn btn-primary">
-        ➕ Nueva Incidencia Operativa
+         Nueva Incidencia Operativa
     </a>
 </section>
 
@@ -46,9 +46,9 @@
             <td>{{ 'Sí' if inc.requiere_seguro else 'No' }}</td>
             <td>{{ inc.estado }}</td>
             <td style="text-align:right;">
-                <a href="{{ url_for('panel_incidencias_operativas', editar=inc.id_incidencia) }}#modal-editar" class="btn-sm">✏️ Editar</a>
+                <a href="{{ url_for('panel_incidencias_operativas', editar=inc.id_incidencia) }}#modal-editar" class="btn-sm btn-info"> Editar</a>
                 <a href="{{ url_for('eliminar_incidencia_operativa', id_incidencia=inc.id_incidencia) }}" class="btn-sm btn-warning"
-                   onclick="return confirm('¿Seguro de eliminar esta incidencia operativa?')">🗑️ Eliminar</a>
+                   onclick="return confirm('¿Seguro de eliminar esta incidencia operativa?')"> Eliminar</a>
             </td>
         </tr>
         {% else %}
@@ -64,7 +64,7 @@
 {# ===================== NUEVA INCIDENCIA ===================== #}
 {% if 'nuevo_incidencia' in request.args %}
 <div id="modal-nueva" style="border:2px solid green; padding:20px;">
-    <h2>➕ Registrar Nueva Incidencia Operativa</h2>
+    <h2> Registrar Nueva Incidencia Operativa</h2>
     <form method="post" action="{{ url_for('registrar_incidencia_operativa') }}">
         <label>Fecha</label>
         <input type="date" name="fecha" max="{{ hoy }}" required>
@@ -93,7 +93,7 @@
 {# ===================== EDITAR INCIDENCIA ===================== #}
 {% if editar_incidencia %}
 <div id="modal-editar" style="border:2px solid orange; padding:20px;">
-    <h2>✏️ Editar Incidencia Operativa</h2>
+    <h2> Editar Incidencia Operativa</h2>
     <form method="post" action="{{ url_for('actualizar_incidencia_operativa') }}">
         <input type="hidden" name="id_incidencia" value="{{ editar_incidencia.id_incidencia }}">
 

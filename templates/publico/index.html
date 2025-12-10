@@ -4,36 +4,180 @@
 
 {% block content %}
 
+<!-- Hero Section Mejorado -->
 <section class="hero-banner">
     <div class="hero-overlay"></div>
-
-    <div class="hero-text">
-        <h1>Bienvenido a Stelman Buses</h1>
-        <p>Moviendo tu ciudad con seguridad, puntualidad y confianza.</p>
+    
+    <div class="hero-content">
+        <div class="hero-text">
+            <span class="hero-badge">Transporte Urbano Arequipa</span>
+            <h1 class="hero-title">
+                Bienvenido a <span class="brand-highlight">Stelman Buses</span>
+            </h1>
+            <p class="hero-description">
+                Moviendo tu ciudad con seguridad, puntualidad y confianza.
+            </p>
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <span class="stat-number">15+</span>
+                    <span class="stat-label">Años de experiencia</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-number">50+</span>
+                    <span class="stat-label">Unidades activas</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-number">100K+</span>
+                    <span class="stat-label">Pasajeros mensuales</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scroll Indicator -->
+    <div class="scroll-indicator">
+        <span class="scroll-text">Descubre más</span>
+        <div class="scroll-arrow"></div>
     </div>
 </section>
 
-
-<section class="about container">
-    <h2 class="section-title">Quiénes somos</h2>
-
-    <p class="about-text">
-        En <strong>Stelman Buses</strong> brindamos un transporte urbano moderno y eficiente.
-        Nuestra prioridad es tu seguridad y comodidad, con unidades supervisadas, mantenimiento constante
-        y personal altamente capacitado.
-    </p>
+<!-- About Section Mejorado -->
+<section class="about-section">
+    <div class="container">
+        <div class="about-grid">
+            <div class="about-image">
+                <div class="image-wrapper">
+                    <div class="image-decoration"></div>
+                    <img src="/static/imagenes/aqp-box.jpg" alt="Bus Stelman" onerror="this.style.display='none'">
+                </div>
+            </div>
+            
+            <div class="about-content">
+                <span class="section-badge">Sobre nosotros</span>
+                <h2 class="section-title">
+                    Quiénes somos
+                </h2>
+                <p class="about-text">
+                    En <strong>Stelman Buses</strong> brindamos un transporte urbano moderno y eficiente 
+                    para la ciudad de Arequipa. Nuestra prioridad es tu seguridad y comodidad, con unidades 
+                    supervisadas, mantenimiento constante y personal altamente capacitado.
+                </p>
+                <p class="about-text">
+                    Conectamos los principales puntos de la ciudad con rutas estratégicas, 
+                    garantizando un servicio puntual y confiable para todos nuestros pasajeros.
+                </p>
+                
+                <div class="about-features">
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div class="feature-text">
+                            <h4>Certificados</h4>
+                            <p>Cumplimos todas las normativas</p>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div class="feature-text">
+                            <h4>Puntualidad</h4>
+                            <p>Horarios precisos y confiables</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </section>
 
+<!-- Services Section Mejorado -->
+<section class="services-section">
+    <div class="container">
+        <div class="services-header">
+            <span class="section-badge light">Nuestros valores</span>
+            <h2 class="section-title light">Nuestro compromiso contigo</h2>
+            <p class="services-subtitle">
+                Trabajamos cada día para brindarte el mejor servicio de transporte urbano en Arequipa
+            </p>
+        </div>
+        
+        <div class="services-grid">
+            <div class="service-card">
+                <div class="service-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    </svg>
+                </div>
+                <h3 class="service-title">Seguridad garantizada</h3>
+                <p class="service-description">
+                    Cada trayecto está supervisado con sistemas de seguridad modernos y personal capacitado
+                </p>
+                <div class="service-badge">Prioridad #1</div>
+            </div>
+            
+            <div class="service-card">
+                <div class="service-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </div>
+                <h3 class="service-title">Mantenimiento continuo</h3>
+                <p class="service-description">
+                    Nuestras unidades reciben mantenimiento preventivo y correctivo constante
+                </p>
+                <div class="service-badge">100% Operativas</div>
+            </div>
+            
+            <div class="service-card">
+                <div class="service-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                </div>
+                <h3 class="service-title">Choferes capacitados</h3>
+                <p class="service-description">
+                    Personal profesional con formación continua en seguridad vial y atención al pasajero
+                </p>
+                <div class="service-badge">Certificados</div>
+            </div>
+            
+            <div class="service-card">
+                <div class="service-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <h3 class="service-title">Puntualidad comprobada</h3>
+                <p class="service-description">
+                    Horarios establecidos y cumplidos para que llegues a tiempo a tu destino
+                </p>
+                <div class="service-badge">Siempre a tiempo</div>
+            </div>
+        </div>
+    </div>
+</section>
 
-<section class="services container">
-    <h2 class="section-title">Nuestro compromiso</h2>
-
-    <ul class="service-list">
-        <li>✔ Seguridad en cada trayecto</li>
-        <li>✔ Unidades en mantenimiento continuo</li>
-        <li>✔ Choferes capacitados</li>
-        <li>✔ Servicio puntual y confiable</li>
-    </ul>
+<!-- CTA Section -->
+<section class="cta-section">
+    <div class="container">
+        <div class="cta-content">
+            <h2 class="cta-title">¿Listo para viajar con nosotros?</h2>
+            <p class="cta-description">
+                Conoce nuestras rutas, horarios y toda la información que necesitas para tu próximo viaje
+            </p>
+            
+        </div>
+    </div>
 </section>
 
 {% endblock %}

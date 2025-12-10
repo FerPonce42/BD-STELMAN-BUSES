@@ -16,7 +16,7 @@
 
 <section style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
     <a href="{{ url_for('panel_personal_choferes', nuevo_chofer='true') }}#modal-registro-chofer" class="btn btn-primary">
-        ➕ Nuevo Chofer
+         Nuevo Chofer
     </a>
 </section>
 
@@ -49,9 +49,9 @@
             <td>{{ c.años_experiencia }} años</td>
 
             <td style="text-align:right;">
-                <a href="{{ url_for('panel_personal_choferes', editar=c.id_empleado) }}#modal-editar" class="btn-sm">✏️ Editar</a>
+                <a href="{{ url_for('panel_personal_choferes', editar=c.id_empleado) }}#modal-editar" class="btn-sm btn-info"> Editar</a>
                 <a href="{{ url_for('panel_personal_choferes', eliminar=c.id_empleado) }}" class="btn-sm btn-warning"
-                   onclick="return confirm('¿Seguro de eliminar este chofer?')">🗑️ Eliminar</a>
+                   onclick="return confirm('¿Seguro de eliminar este chofer?')"> Eliminar</a>
             </td>
         </tr>
         {% else %}
@@ -68,7 +68,7 @@
 {# ===================== NUEVO CHOFER ===================== #}
 {% if 'nuevo_chofer' in request.args %}
 <div id="modal-registro-chofer" style="border:2px solid green;padding:20px;">
-    <h2>➕ Registrar Nuevo Chofer</h2>
+    <h2> Registrar Nuevo Chofer</h2>
     <form method="post" action="{{ url_for('registrar_personal_chofer') }}">
         <input type="hidden" name="tipo_registro" value="chofer">
 
@@ -110,7 +110,7 @@
 {# ===================== EDITAR CHOFER ===================== #}
 {% if editar_personal %}
 <div id="modal-editar" style="border:2px solid orange;padding:20px;">
-    <h2>✏️ Editar Chofer</h2>
+    <h2> Editar Chofer</h2>
 
     <form method="post" action="{{ url_for('actualizar_personal_chofer') }}">
         <input type="hidden" name="id_empleado" value="{{ editar_personal.id_empleado }}">

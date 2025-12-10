@@ -44,7 +44,42 @@ def rutas():
 
 @app.route("/ruta/<string:codigo>")
 def detalle_ruta(codigo):
-    return render_template("publico/ruta_detalle.html", codigo=codigo)
+    # Coordenadas de paradas por ruta (ejemplo)
+    paraderos_data = {
+        'A': [
+            {'nombre': 'Plaza de Armas', 'lat': -16.4090, 'lng': -71.5375},
+            {'nombre': 'Yanahuara', 'lat': -16.4120, 'lng': -71.5380},
+            {'nombre': 'Cayma', 'lat': -16.4180, 'lng': -71.5320}
+        ],
+        'B': [
+            {'nombre': 'Paucarpata', 'lat': -16.4005, 'lng': -71.5300},
+            {'nombre': 'Av. Kennedy', 'lat': -16.4020, 'lng': -71.5280},
+            {'nombre': 'Palacio Metropolitano', 'lat': -16.4080, 'lng': -71.5260}
+        ],
+        'C': [
+            {'nombre': 'Umacollo', 'lat': -16.3960, 'lng': -71.5360},
+            {'nombre': 'UNSA Ingenierías', 'lat': -16.3980, 'lng': -71.5350},
+            {'nombre': 'Terminal Terrestre', 'lat': -16.4050, 'lng': -71.5330}
+        ],
+        'D': [
+            {'nombre': 'Cerro Colorado', 'lat': -16.3900, 'lng': -71.5400},
+            {'nombre': 'Zamacola', 'lat': -16.3920, 'lng': -71.5390},
+            {'nombre': 'Av. La Marina', 'lat': -16.3980, 'lng': -71.5380}
+        ],
+        'E': [
+            {'nombre': 'Sabandía', 'lat': -16.4080, 'lng': -71.5230},
+            {'nombre': 'Characato', 'lat': -16.4070, 'lng': -71.5230},
+            {'nombre': 'Cercado', 'lat': -16.4030, 'lng': -71.5210}
+        ],
+        'F': [
+            {'nombre': 'Tiabaya', 'lat': -16.4120, 'lng': -71.5300},
+            {'nombre': 'Hunter', 'lat': -16.4120, 'lng': -71.5290},
+            {'nombre': 'Cercado', 'lat': -16.4090, 'lng': -71.5270}
+        ]
+    }
+    
+    paraderos = paraderos_data.get(codigo, [])
+    return render_template("publico/ruta_detalle.html", codigo=codigo, paraderos_coords=paraderos)
 
 
 @app.route('/contacto', methods=['GET','POST'])
@@ -54,7 +89,6 @@ def contacto():
                                enviado=True,
                                nombre=request.form.get('nombre'))
     return render_template('publico/contacto.html')
-
 
 #=====================================================
 # LOGIN / AUTENTICACIÓN 
@@ -179,7 +213,7 @@ def panel():
 
 
 #=====================================================
-# MODULOS DE BUSES
+# MODULOS DE BUSESS
 #=====================================================
 
 @app.route("/panel/buses", methods=["GET", "POST"])
